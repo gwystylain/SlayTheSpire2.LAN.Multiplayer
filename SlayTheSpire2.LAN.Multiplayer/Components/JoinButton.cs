@@ -38,9 +38,11 @@ namespace SlayTheSpire2.LAN.Multiplayer.Components
                 joinButton.AddChildSafely(child.Duplicate());
             }
 
-            var controllerIcon = joinButton.GetNode<TextureRect>("ControllerIcon");
-            controllerIcon.Owner = joinButton;
-            controllerIcon.Position = new Vector2(controllerIcon.Position.X - 12, controllerIcon.Position.Y);
+            //NButton finds the icon as %HotkeyIcon, which only resolves once the button owns it
+            var hotkeyIcon = joinButton.GetNode<Control>("HotkeyIcon");
+            hotkeyIcon.Owner = joinButton;
+            //Its offsets are laid out for the larger Refresh button; keep the same spot relative to the corner
+            hotkeyIcon.Position += (joinButton.CustomMinimumSize - joinFriendRefreshButton.Size) / 2;
 
             return joinButton;
         }
