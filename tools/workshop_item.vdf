@@ -1,0 +1,17 @@
+"workshopitem"
+{
+	// Slay the Spire 2.
+	"appid"			"2868840"
+	// 0 creates a new item. After the first upload, put the id SteamCMD printed here and
+	// commit it, or every release will create another item.
+	"publishedfileid"	"0"
+	// Filled in by tools/package.py when it renders dist/workshop_item.vdf.
+	"contentfolder"		"${contentfolder}"
+	"previewfile"		"${previewfile}"
+	// 0 public, 1 friends only, 2 private, 3 unlisted.
+	"visibility"		"1"
+	// Every key here overwrites the Workshop page on each upload; edit them here, not on the web.
+	"title"			"SlayTheSpire2.LAN.Multiplayer (unlock everything)"
+	"description"		"Play Slay the Spire 2 multiplayer over the local network, with a custom host port and player limit. This build also unlocks every character, card, relic, potion and act without touching your save, and lets a multiplayer host pick any ascension. Everyone in a run needs the same version: the game refuses the join and names the mismatch otherwise.\n\nA fork of kmyuhkyuk's SlayTheSpire2.LAN.Multiplayer, licensed GPL-3.0.\nUpstream: https://github.com/kmyuhkyuk/SlayTheSpire2.LAN.Multiplayer\nSource for this build: https://github.com/gwystylain/SlayTheSpire2.LAN.Multiplayer"
+	"changenote"		"${changenote}"
+}
