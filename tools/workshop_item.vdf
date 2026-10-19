@@ -2,9 +2,9 @@
 {
 	// Slay the Spire 2.
 	"appid"			"2868840"
-	// 0 creates a new item. After the first upload, put the id SteamCMD printed here and
-	// commit it, or every release will create another item.
-	"publishedfileid"	"0"
+	// https://steamcommunity.com/sharedfiles/filedetails/?id=3823079996
+	// Uploads update this item; 0 would create a new one.
+	"publishedfileid"	"3823079996"
 	// Filled in by tools/package.py when it renders dist/workshop_item.vdf.
 	"contentfolder"		"${contentfolder}"
 	"previewfile"		"${previewfile}"

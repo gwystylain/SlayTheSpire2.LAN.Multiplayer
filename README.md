@@ -7,7 +7,8 @@ Used Local network with friends to play Slay The Spire 2 multiplayer.
 ## How Install
 Extract the archive to get mods folder then place mods folder into the game directory.
 
-Or subscribe to the Steam Workshop item, and Steam keeps it up to date.
+Or subscribe to the [Steam Workshop item](https://steamcommunity.com/sharedfiles/filedetails/?id=3823079996),
+and Steam keeps it up to date.
 Remove any copy in the game's `mods` folder when you switch: with both installed the game keeps the higher
 version, and the local copy on a tie.
 
@@ -81,10 +82,11 @@ on every upload, so edit them in the template rather than on the web.
    steamcmd +login <your Steam account name> +workshop_build_item "<repo>/dist/workshop_item.vdf" +quit
    ```
 
-3. The first upload only: `publishedfileid` is `0`, so SteamCMD creates a new item and prints its id.
-   Put that id into `tools/workshop_item.vdf` and commit it, or the next release creates a second item.
-   Then open `https://steamcommunity.com/sharedfiles/filedetails/?id=<id>` and accept the Workshop
-   legal agreement if Steam asks. Until you accept it, the item stays hidden from everyone else.
+3. `tools/workshop_item.vdf` holds the item's id, 3823079996, so each upload updates
+   [the item](https://steamcommunity.com/sharedfiles/filedetails/?id=3823079996). With `publishedfileid`
+   `0`, SteamCMD would create a new item instead and print its id, which then belongs in the template.
+   A new item stays hidden from everyone else until its uploader accepts the Workshop legal agreement
+   on its page.
 
 Steam updates subscribed items when the client syncs, so players get each release by restarting the
 game. A player still on the old version fails to join and sees the mismatch.
