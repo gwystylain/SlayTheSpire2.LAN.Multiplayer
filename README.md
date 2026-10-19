@@ -7,7 +7,7 @@ Used Local network with friends to play Slay The Spire 2 multiplayer.
 ## How Install
 Extract the archive to get mods folder then place mods folder into the game directory.
 
-Or, if you're a Steam friend of the uploader, subscribe to the Workshop item and Steam keeps it up to date.
+Or subscribe to the Steam Workshop item, and Steam keeps it up to date.
 Remove any copy in the game's `mods` folder when you switch: with both installed the game keeps the higher
 version, and the local copy on a tie.
 
@@ -67,8 +67,8 @@ endings normalized to LF. To edit text, edit `localization/`. To look inside a p
 
 ### Steam Workshop
 
-The item is friends-only (`"visibility" "1"`). Anyone on the uploader's Steam friends list can open it
-and subscribe, and the game loads subscribed items on its own. `tools/workshop_item.vdf` is the
+The item is public (`"visibility" "0"`; 1 would make it friends-only). Anyone who owns the game can
+subscribe, and the game loads subscribed items on its own. `tools/workshop_item.vdf` is the
 template: app 2868840, the staged mod folder as content, `mod_image.png` as the preview. Its title,
 description (which credits upstream and links the source) and change note overwrite the Workshop page
 on every upload, so edit them in the template rather than on the web.
@@ -84,11 +84,10 @@ on every upload, so edit them in the template rather than on the web.
 3. The first upload only: `publishedfileid` is `0`, so SteamCMD creates a new item and prints its id.
    Put that id into `tools/workshop_item.vdf` and commit it, or the next release creates a second item.
    Then open `https://steamcommunity.com/sharedfiles/filedetails/?id=<id>` and accept the Workshop
-   legal agreement if Steam asks. Until you accept it, the item stays hidden, friends included. Send
-   friends that link to subscribe.
+   legal agreement if Steam asks. Until you accept it, the item stays hidden from everyone else.
 
-Steam updates subscribed items when the client syncs, so friends get each release by restarting the
-game. A friend still on the old version fails to join and sees the mismatch.
+Steam updates subscribed items when the client syncs, so players get each release by restarting the
+game. A player still on the old version fails to join and sees the mismatch.
 
 ## License
 

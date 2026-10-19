@@ -169,7 +169,7 @@ def main():
     vdf = string.Template(VDF_TEMPLATE.read_text(encoding="utf-8")).substitute(
         contentfolder=vdf_string(stage),
         previewfile=vdf_string(PREVIEW),
-        changenote=vdf_string(f"v{version}: https://github.com/{REPO}/releases/tag/v{version}"),
+        changenote=vdf_string(f"v{version}, built from https://github.com/{REPO}/tree/{commit or 'master'}"),
     )
     (out / "workshop_item.vdf").write_text(vdf, encoding="utf-8")
 
