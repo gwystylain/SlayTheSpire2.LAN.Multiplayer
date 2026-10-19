@@ -46,7 +46,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Messages
     {
         private static bool Prefix(ref ClientLobbyJoinResponseMessage __instance, PacketReader reader)
         {
-            __instance.playersInLobby = PacketHelper.ReadList<LobbyPlayer>(reader);
+            __instance.playersInLobby = PacketHelper.ReadList<StartRunLobbyPlayer>(reader);
             if (reader.ReadBool())
             {
                 __instance.dailyTime = reader.Read<TimeServerResult>();

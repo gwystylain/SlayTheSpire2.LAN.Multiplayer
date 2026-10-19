@@ -34,11 +34,11 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
 
         public static async Task<bool> ShouldAllowRunToBegin(LoadRunLobby runLobby)
         {
-            if (runLobby.ConnectedPlayerIds.Count >= runLobby.Run.Players.Count)
+            if (runLobby.PlayerCount >= runLobby.Run.Players.Count)
                 return true;
 
             var locString = new LocString("gameplay_ui", "CONFIRM_LOAD_SAVE.body");
-            locString.Add("MissingCount", runLobby.Run.Players.Count - runLobby.ConnectedPlayerIds.Count);
+            locString.Add("MissingCount", runLobby.Run.Players.Count - runLobby.PlayerCount);
 
             var nGenericPopup = NGenericPopup.Create();
             if (nGenericPopup != null)

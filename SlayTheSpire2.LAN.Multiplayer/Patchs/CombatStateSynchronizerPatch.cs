@@ -79,9 +79,14 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
                 await Task.Delay(100);
             }
 
+            //A client only receives the host's RNG while waiting, so read it now rather than from the prefix's copy
+            var traverse = Traverse.Create(instance);
+            rngSet = traverse.Field("_rngSet").GetValue<SerializableRunRngSet?>();
+            sharedRelicGrabBag = traverse.Field("_sharedRelicGrabBag").GetValue<SerializableRelicGrabBag?>();
+
             foreach (var syncDatum in syncData)
             {
-                if (runLobby != null && !runLobby.ConnectedPlayerIds.Contains(syncDatum.Key))
+                if (runLobby != null && !runLobby.PlayerIds.Contains(syncDatum.Key))
                 {
                     logger.Debug($"Skipping sync for disconnected player {syncDatum.Key}");
                     continue;
@@ -118,7 +123,6 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
             }
 
             syncData.Clear();
-            var traverse = Traverse.Create(instance);
             traverse.Field("_rngSet").SetValue(null);
             traverse.Field("_sharedRelicGrabBag").SetValue(null);
             traverse.Field("_syncCompletionSource").SetValue(null);

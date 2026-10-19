@@ -232,7 +232,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Components
 
         private void UpdateController()
         {
-            if (NControllerManager.Instance?.IsUsingController ?? false)
+            if (NControllerManager.Instance?.IsUsingDirectionalNavigation ?? false)
             {
                 ShowBox();
             }
@@ -370,7 +370,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Components
 
         private void OnMouseEntered()
         {
-            if (NControllerManager.Instance?.IsUsingController ?? false)
+            if (NControllerManager.Instance?.IsUsingDirectionalNavigation ?? false)
                 return;
 
             ShowBox();
@@ -378,7 +378,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Components
 
         private void OnMouseExited()
         {
-            if (NControllerManager.Instance?.IsUsingController ?? false)
+            if (NControllerManager.Instance?.IsUsingDirectionalNavigation ?? false)
                 return;
 
             HideBox();

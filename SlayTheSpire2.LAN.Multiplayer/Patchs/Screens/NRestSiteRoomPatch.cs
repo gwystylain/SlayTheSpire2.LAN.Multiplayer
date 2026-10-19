@@ -61,8 +61,11 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
                 var bgContainer = __instance.GetNode("BgContainer");
                 var restSiteBackground = bgContainer.GetChild(0);
 
-                var lastLeftRestSite = (Control)restSiteBackground.GetNode("RestSiteLLog");
-                var lastRightRestSite = (Control)restSiteBackground.GetNode("RestSiteRLog");
+                var lastLeftRestSite = FindLog(restSiteBackground, "RestSiteLLog");
+                var lastRightRestSite = FindLog(restSiteBackground, "RestSiteRLog");
+
+                if (lastLeftRestSite == null || lastRightRestSite == null)
+                    return;
 
                 for (var i = 4; i < ____runState.Players.Count; i++)
                 {
@@ -76,6 +79,13 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
                     }
                 }
             }
+        }
+
+        //Each act's background names its log differently (RestSiteLLog in Hive, RestSiteLLog3 in Glory)
+        private static Control? FindLog(Node restSiteBackground, string namePrefix)
+        {
+            return restSiteBackground.GetChildren().OfType<TextureRect>()
+                .FirstOrDefault(child => child.Name.ToString().StartsWith(namePrefix));
         }
 
         private static void AddRestSite(Node restSiteBackground, ref Control restSite, bool isLeft)

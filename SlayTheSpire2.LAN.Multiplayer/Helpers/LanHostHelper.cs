@@ -41,7 +41,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
             loadingOverlay.Visible = true;
             try
             {
-                var netService = new NetHostGameService();
+                var netService = new NetHostGameService(PeerVersionInfo.LocalDefault());
                 NetErrorInfo? netErrorInfo = null;
                 //Add one more max client to send the full lobby message
                 netService.StartENetHost(port, maxPlayers + 1);
@@ -104,32 +104,35 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
             loadingOverlay.Visible = true;
             try
             {
-                var netService = new NetHostGameService();
+                var netService = new NetHostGameService(PeerVersionInfo.LocalDefault());
                 NetErrorInfo? netErrorInfo = null;
                 netService.StartENetHost(port, maxPlayers + 1);
                 Log.Info($"HostGame open on port:{port}");
                 if (!netErrorInfo.HasValue)
                 {
-                    if (run.Modifiers.Count > 0)
+                    switch (run.GameMode)
                     {
-                        if (run.DailyTime.HasValue)
+                        case GameMode.Daily:
                         {
                             var submenuType = stack.GetSubmenuType<NDailyRunLoadScreen>();
                             submenuType.InitializeAsHost(netService, run);
                             stack.Push(submenuType);
+                            break;
                         }
-                        else
+                        case GameMode.Custom:
                         {
                             var submenuType2 = stack.GetSubmenuType<NCustomRunLoadScreen>();
                             submenuType2.InitializeAsHost(netService, run);
                             stack.Push(submenuType2);
+                            break;
                         }
-                    }
-                    else
-                    {
-                        var submenuType3 = stack.GetSubmenuType<NMultiplayerLoadGameScreen>();
-                        submenuType3.InitializeAsHost(netService, run);
-                        stack.Push(submenuType3);
+                        default:
+                        {
+                            var submenuType3 = stack.GetSubmenuType<NMultiplayerLoadGameScreen>();
+                            submenuType3.InitializeAsHost(netService, run);
+                            stack.Push(submenuType3);
+                            break;
+                        }
                     }
                 }
                 else

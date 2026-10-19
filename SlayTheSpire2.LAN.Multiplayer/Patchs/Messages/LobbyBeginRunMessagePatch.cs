@@ -34,7 +34,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Messages
     {
         private static bool Prefix(ref LobbyBeginRunMessage __instance, PacketReader reader)
         {
-            __instance.playersInLobby = PacketHelper.ReadList<LobbyPlayer>(reader);
+            __instance.playersInLobby = PacketHelper.ReadList<StartRunLobbyPlayer>(reader);
             __instance.seed = reader.ReadString();
             __instance.modifiers = reader.ReadList<SerializableModifier>();
             __instance.act1 = reader.ReadString();
