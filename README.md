@@ -14,6 +14,19 @@ version, and the local copy on a tie.
 
 Everyone in a run needs the same version. Joining with a different one fails and names the mismatch.
 
+## Playing
+
+- **Finding games.** The Join screen lists games hosted on your network under "Games on your network"; pick
+  one to join it. Hosts answer on UDP port 33770, so a firewall that blocks it hides the game from the list,
+  though typing the host's address still works.
+- **Sleep and dropped connections.** If the connection drops mid-game, for example because a Steam Deck went
+  to sleep, nobody is sent back to the menu. The client keeps reconnecting to the host and the run picks up
+  where it left off, with a banner on screen in the meantime. This only works while the host keeps the same
+  IP address, so a DHCP reservation for the host helps. Quitting from the menu still ends the game as before.
+- **Unlocks.** Everything is unlocked, and every epoch on the timeline is marked revealed in the modded
+  profile's progress save, so the main menu never waits for you to click through the timeline. The
+  unmodded profile is untouched.
+
 ## Screenshot
 ![Screenshot1](Screenshot/screenshot1.png)
 ![Screenshot2](Screenshot/screenshot2.png)
@@ -44,7 +57,8 @@ You need the .NET 9 SDK (in `~/.dotnet` or on `PATH`), Python 3, and the game's
    - `workshop_item.vdf`: the Workshop upload config with this checkout's paths filled in
    - `release-notes.md`: install steps and upstream credit, with space for the changes
 
-   You can also set `STS2_DATA_DIR` instead of passing `--sts2-data-dir`. When it finishes, it prints
+   Pass `--changes "..."` to say what changed: it leads the Workshop change note and
+   `dist/release-notes.md`. You can also set `STS2_DATA_DIR` instead of passing `--sts2-data-dir`. When it finishes, it prints
    the `gh` and `steamcmd` commands for steps 4 and 5 with this build's version, commit and paths
    filled in, and warns if the tree has uncommitted changes or the commit isn't pushed.
 4. Publish on GitHub. Write what changed at the top of `dist/release-notes.md`, then run the command

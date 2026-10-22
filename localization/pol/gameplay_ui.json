@@ -1,3 +1,5 @@
 {
-    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Wyłącz rysowanie"
+    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Wyłącz rysowanie",
+    "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "Utracono połączenie z hostem. Ponowne łączenie...",
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "Utracono połączenie z graczem {Player}. Oczekiwanie na ponowne połączenie..."
 }

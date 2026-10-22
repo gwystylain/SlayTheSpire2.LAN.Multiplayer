@@ -129,7 +129,7 @@ def git(*args):
 
 def vdf_string(value):
     # KeyValues strings take backslash escapes, so a Windows path's separators are doubled.
-    return str(value).replace("\\", "\\\\").replace('"', '\\"')
+    return str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 
 
 def main():
@@ -140,6 +140,8 @@ def main():
     parser.add_argument("--template", type=Path, default=PCK_BASE,
                         help="pck whose non-localization entries are kept (default: tools/pck_base.pck)")
     parser.add_argument("--out", type=Path, default=ROOT / "dist", help="output folder (default: dist/)")
+    parser.add_argument("--changes", default="",
+                        help="what changed in this version; leads the Workshop change note and the release notes")
     args = parser.parse_args()
 
     version, tfm = read_version()
@@ -166,15 +168,16 @@ def main():
         for f in sorted(stage.iterdir()):
             zf.write(f, f"mods/{MOD_ID}/{f.name}")
 
+    built_from = f"v{version}, built from https://github.com/{REPO}/tree/{commit or 'master'}"
     vdf = string.Template(VDF_TEMPLATE.read_text(encoding="utf-8")).substitute(
         contentfolder=vdf_string(stage),
         previewfile=vdf_string(PREVIEW),
-        changenote=vdf_string(f"v{version}, built from https://github.com/{REPO}/tree/{commit or 'master'}"),
+        changenote=vdf_string(f"{args.changes}\n\n{built_from}" if args.changes else built_from),
     )
     (out / "workshop_item.vdf").write_text(vdf, encoding="utf-8")
 
     (out / "release-notes.md").write_text(
-        f"<!-- What changed in v{version}. -->\n\n"
+        f"{args.changes or f'<!-- What changed in v{version}. -->'}\n\n"
         "## Install\n"
         f"Extract the zip into the game folder, so the files land in `mods/{MOD_ID}/`. "
         "Everyone in a run needs the same version; joining with a different one fails and names it.\n\n"

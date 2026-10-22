@@ -1,3 +1,5 @@
 {
-    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Çizimi devre dışı bırak"
+    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Çizimi devre dışı bırak",
+    "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "Oda sahibiyle bağlantı koptu. Yeniden bağlanılıyor...",
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "{Player} ile bağlantı koptu. Yeniden bağlanması bekleniyor..."
 }

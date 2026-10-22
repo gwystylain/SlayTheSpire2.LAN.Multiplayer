@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Transport;
 using MegaCrit.Sts2.Core.Multiplayer.Transport.ENet;
 using SlayTheSpire2.LAN.Multiplayer.Helpers;
+using SlayTheSpire2.LAN.Multiplayer.Services;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
 
 // ReSharper disable UnusedMember.Global
@@ -16,7 +17,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
     {
         [HarmonyReversePatch]
         [HarmonyPatch(typeof(ENetClient), "HandleMessageReceived")]
-        private static void HandleMessageReceived(ENetClient instance, ENetServiceData data)
+        internal static void HandleMessageReceived(ENetClient instance, ENetServiceData data)
         {
             throw new NotImplementedException();
         }
@@ -86,10 +87,11 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
 
                 Traverse.Create(eNetClient).Field("_netId").SetValue(newNetId);
                 Traverse.Create(eNetClient).Field("_isConnected").SetValue(true);
+                LanClientResumeService.Instance.OnConnected(eNetClient, ip, port, newNetId);
                 handler.OnConnectedToHost();
                 foreach (var item in bufferedPackets)
                 {
-                    HandleMessageReceived(eNetClient, item);
+                    LanClientResumeService.Instance.Deliver(eNetClient, item);
                 }
 
                 return null;
@@ -162,6 +164,39 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
             }
 
             return (null, netId);
+        }
+    }
+
+    [HarmonyPatch(typeof(ENetClient), "Update")]
+    internal class ENetClientUpdatePatch
+    {
+        private static bool Prefix(ENetClient __instance)
+        {
+            LanClientResumeService.Instance.Update(__instance);
+
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(ENetClient), "SendMessageToHost")]
+    internal class ENetClientSendMessageToHostPatch
+    {
+        private static bool Prefix(ENetClient __instance, byte[] bytes, int length, NetTransferMode mode, int channel)
+        {
+            LanClientResumeService.Instance.SendMessageToHost(__instance, bytes, length, mode, channel);
+
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(ENetClient), "DisconnectFromHost")]
+    internal class ENetClientDisconnectFromHostPatch
+    {
+        private static bool Prefix(ENetClient __instance, NetError reason, bool now)
+        {
+            LanClientResumeService.Instance.DisconnectFromHost(__instance, reason, now);
+
+            return false;
         }
     }
 }

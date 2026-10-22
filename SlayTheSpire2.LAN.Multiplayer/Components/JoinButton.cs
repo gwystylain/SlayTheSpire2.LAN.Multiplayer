@@ -15,28 +15,10 @@ namespace SlayTheSpire2.LAN.Multiplayer.Components
         {
             var joinButton = new JoinButton
             {
-                CustomMinimumSize = new Vector2(150, 50),
-                SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
-                MouseFilter = MouseFilterEnum.Stop,
-                Material = (Material)joinFriendRefreshButton.Material.Duplicate()
+                CustomMinimumSize = new Vector2(150, 50)
             };
 
-            var background = new NinePatchRect
-            {
-                Name = "Background", MouseFilter = MouseFilterEnum.Ignore,
-                Texture = GD.Load<CompressedTexture2D>("res://images/ui/tiny_nine_patch.png"), PatchMarginLeft = 12,
-                PatchMarginTop = 12, PatchMarginRight = 12, PatchMarginBottom = 12,
-                Modulate = joinFriendRefreshButton.SelfModulate,
-                Material = joinButton.Material
-            };
-
-            joinButton.AddChildSafely(background);
-            background.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-
-            foreach (var child in joinFriendRefreshButton.GetChildren())
-            {
-                joinButton.AddChildSafely(child.Duplicate());
-            }
+            CopyLook(joinButton, joinFriendRefreshButton);
 
             //NButton finds the icon as %HotkeyIcon, which only resolves once the button owns it
             var hotkeyIcon = joinButton.GetNode<Control>("HotkeyIcon");
@@ -45,6 +27,31 @@ namespace SlayTheSpire2.LAN.Multiplayer.Components
             hotkeyIcon.Position += (joinButton.CustomMinimumSize - joinFriendRefreshButton.Size) / 2;
 
             return joinButton;
+        }
+
+        // Gives a new button the Refresh button's background, label and hotkey icon.
+        public static void CopyLook(NJoinFriendRefreshButton button, NJoinFriendRefreshButton joinFriendRefreshButton)
+        {
+            button.SizeFlagsHorizontal = SizeFlags.ShrinkCenter;
+            button.MouseFilter = MouseFilterEnum.Stop;
+            button.Material = (Material)joinFriendRefreshButton.Material.Duplicate();
+
+            var background = new NinePatchRect
+            {
+                Name = "Background", MouseFilter = MouseFilterEnum.Ignore,
+                Texture = GD.Load<CompressedTexture2D>("res://images/ui/tiny_nine_patch.png"), PatchMarginLeft = 12,
+                PatchMarginTop = 12, PatchMarginRight = 12, PatchMarginBottom = 12,
+                Modulate = joinFriendRefreshButton.SelfModulate,
+                Material = button.Material
+            };
+
+            button.AddChildSafely(background);
+            background.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+
+            foreach (var child in joinFriendRefreshButton.GetChildren())
+            {
+                button.AddChildSafely(child.Duplicate());
+            }
         }
 
         public override void _Ready()

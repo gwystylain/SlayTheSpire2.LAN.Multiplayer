@@ -55,37 +55,41 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
 
             vBoxContainer.AddChildSafely(addressLineEdit);
 
-            var joinButton = JoinButton.Create(__instance.GetNode<NJoinFriendRefreshButton>("RefreshButton"));
+            var refreshButton = __instance.GetNode<NJoinFriendRefreshButton>("RefreshButton");
+            var joinButton = JoinButton.Create(refreshButton);
             joinButton.Name = "JointButton";
             vBoxContainer.AddChildSafely(joinButton);
+
+            void Join(string address, ushort port)
+            {
+                SettingsService.Instance.SettingsModel.IPAddress = addressLineEdit.Text;
+                SettingsService.Instance.WriteSettings();
+
+                DisplayServer.WindowSetTitle("Slay The Spire 2 (Client)");
+                TaskHelper.RunSafely(
+                    __instance.JoinGameAsync(new ENetClientConnectionInitializer(
+                        SettingsService.Instance.SettingsModel.NetId, address, port)));
+            }
 
             joinButton.Connect(NClickableControl.SignalName.Released, Callable.From<NClickableControl>(_ =>
             {
                 var addressInfo = addressLineEdit.GetAddressInfo();
 
-                if (!addressInfo.IsValid)
+                if (!addressInfo.IsValid || addressInfo.Address == null)
                     return;
 
-                SettingsService.Instance.SettingsModel.IPAddress = addressLineEdit.Text;
-                SettingsService.Instance.WriteSettings();
-
-                ushort port = 33771;
-
-                if (addressInfo.Port.HasValue)
-                {
-                    port = addressInfo.Port.Value;
-                }
-
-                DisplayServer.WindowSetTitle("Slay The Spire 2 (Client)");
-                if (addressInfo.Address != null)
-                {
-                    TaskHelper.RunSafely(
-                        __instance.JoinGameAsync(new ENetClientConnectionInitializer(
-                            SettingsService.Instance.SettingsModel.NetId, addressInfo.Address, port)));
-                }
+                Join(addressInfo.Address, addressInfo.Port ?? 33771);
             }));
 
-            var ipAddressLabel = (MegaLabel)__instance.GetNode("TitleLabel").Duplicate();
+            var titleLabel = __instance.GetNode<MegaLabel>("TitleLabel");
+
+            vBoxContainer.AddChildSafely(LanGameList.Create(refreshButton, titleLabel, game =>
+            {
+                addressLineEdit.Text = game.Port == 33771 ? game.Address : $"{game.Address}:{game.Port}";
+                Join(game.Address, game.Port);
+            }));
+
+            var ipAddressLabel = (MegaLabel)titleLabel.Duplicate();
             ipAddressLabel.CustomMinimumSize = new Vector2(300, 0);
             ipAddressLabel.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
             lanPanel.AddChildSafely(ipAddressLabel);

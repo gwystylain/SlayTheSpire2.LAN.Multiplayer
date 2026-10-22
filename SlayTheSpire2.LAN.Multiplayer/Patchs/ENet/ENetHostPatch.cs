@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Multiplayer.Transport;
 using MegaCrit.Sts2.Core.Multiplayer.Transport.ENet;
 using SlayTheSpire2.LAN.Multiplayer.Helpers;
 using SlayTheSpire2.LAN.Multiplayer.Models;
+using SlayTheSpire2.LAN.Multiplayer.Services;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
 
 // ReSharper disable UnusedMember.Global
@@ -45,12 +46,15 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
 
                 if (handshake == null)
                 {
+                    if (LanHostResumeService.Instance.IsResumedPeer(eNetHost, peer))
+                        return;
+
                     await Task.Delay(100);
                     timeoutTimer += 100;
                     if (timeoutTimer >= 10000)
                     {
                         logger.Error("Timed out waiting for handshake!");
-                        peer.Reset();
+                        LanHostResumeService.RetirePeer(peer);
                         return;
                     }
                 }
@@ -93,6 +97,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
                     status = ENetHandshakeStatus.Success
                 });
                 handshakePeer.Send(0, eNetPacket2.AllBytes, 1);
+                LanHostResumeService.Instance.OnClientAccepted(eNetHost, handshakeNetId, handshakePeer);
                 connectedPeers.Add(handshakeConn);
                 handler.OnPeerConnected(handshakeNetId);
             }
@@ -115,8 +120,63 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
             }
 
             ____isConnected = true;
+            LanDiscoveryService.Instance.StartResponding(port);
 
             return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(ENetHost), "Update")]
+    internal class ENetHostUpdatePatch
+    {
+        private static bool Prefix(ENetHost __instance)
+        {
+            LanHostResumeService.Instance.Update(__instance);
+            LanDiscoveryService.Instance.Respond();
+
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(ENetHost), "SendMessageToClient")]
+    internal class ENetHostSendMessageToClientPatch
+    {
+        private static bool Prefix(ENetHost __instance, ulong peerId, byte[] bytes, int length, NetTransferMode mode,
+            int channel)
+        {
+            return !LanHostResumeService.Instance.SendMessageToClient(__instance, peerId, bytes, length, mode, channel);
+        }
+    }
+
+    [HarmonyPatch(typeof(ENetHost), "DisconnectClientInternal")]
+    internal class ENetHostDisconnectClientInternalPatch
+    {
+        private static bool Prefix(ENetHost __instance, ulong peerId, NetError reason, bool now, bool notifyHandler)
+        {
+            LanHostResumeService.Instance.DisconnectClient(__instance, peerId, reason, now, notifyHandler);
+
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(ENetHost), "StopHost")]
+    internal class ENetHostStopHostPatch
+    {
+        private static void Postfix(ENetHost __instance)
+        {
+            LanHostResumeService.Instance.OnStopped(__instance);
+            LanDiscoveryService.Instance.StopResponding();
+        }
+    }
+
+    [HarmonyPatch]
+    internal class ENetHostReversePatches
+    {
+        [HarmonyReversePatch]
+        [HarmonyPatch(typeof(ENetHost), "HandlePacketReceived")]
+        internal static void HandlePacketReceived(ENetHost instance, ENetServiceData data)
+        {
+            throw new NotImplementedException();
         }
     }
 }

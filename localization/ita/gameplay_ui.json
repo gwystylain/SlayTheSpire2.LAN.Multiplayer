@@ -1,3 +1,5 @@
 {
-    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Disabilita il disegno"
+    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Disabilita il disegno",
+    "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "Connessione persa con chi ha creato la partita. Riconnessione...",
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "Connessione persa con {Player}. In attesa che si riconnetta..."
 }

@@ -1,3 +1,5 @@
 {
-    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Отключить рисование"
+    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Отключить рисование",
+    "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "Соединение с создателем игры потеряно. Переподключение…",
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "Соединение с игроком {Player} потеряно. Ожидаем переподключения…"
 }

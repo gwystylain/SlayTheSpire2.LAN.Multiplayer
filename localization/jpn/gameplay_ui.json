@@ -1,3 +1,5 @@
 {
-    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "描画を無効にする"
+    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "描画を無効にする",
+    "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "ホストとの接続が切れました。再接続しています……",
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "{Player}との接続が切れました。再接続を待っています……"
 }

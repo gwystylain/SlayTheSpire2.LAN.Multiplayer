@@ -2,5 +2,7 @@
     "SlayTheSpire2.LAN.Multiplayer.COPIED": "Copiado",
     "SlayTheSpire2.LAN.Multiplayer.IP_ADDRESS_TITLE": "Dirección IP:",
     "SlayTheSpire2.LAN.Multiplayer.LOCAL_IP_ADDRESS_TITLE": "Dirección IP local:",
-    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "Dirección IPV6:"
+    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "Dirección IPV6:",
+    "SlayTheSpire2.LAN.Multiplayer.LAN_GAMES_TITLE": "Partidas en tu red",
+    "SlayTheSpire2.LAN.Multiplayer.LAN_GAMES_SEARCHING": "Buscando partidas..."
 }

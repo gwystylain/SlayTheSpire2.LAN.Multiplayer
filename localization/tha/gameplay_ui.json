@@ -1,3 +1,5 @@
 {
-    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "ปิดใช้งานการวาดภาพ"
+    "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "ปิดใช้งานการวาดภาพ",
+    "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "การเชื่อมต่อกับเจ้าของห้องขาดหาย กำลังเชื่อมต่อใหม่...",
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "การเชื่อมต่อกับ {Player} ขาดหาย กำลังรอให้เชื่อมต่อใหม่..."
 }
