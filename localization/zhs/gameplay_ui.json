@@ -1,5 +1,8 @@
 {
     "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "禁用绘图",
     "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "与主机的连接已断开。正在重新连接...",
-    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "与{Player}的连接已断开。正在等待对方重新连接..."
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "与{Player}的连接已断开。正在等待对方重新连接...",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT": "重新开始战斗",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.header": "重新开始战斗？",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.body": "游戏会重新读取存档，所有人回到这场战斗的开始。"
 }

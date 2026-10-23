@@ -3,6 +3,8 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Localization;
+using MegaCrit.Sts2.Core.Multiplayer;
+using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Multiplayer.Transport;
 using MegaCrit.Sts2.Core.Multiplayer.Transport.ENet;
 using SlayTheSpire2.LAN.Multiplayer.Components;
@@ -90,6 +92,14 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
         public void OnConnected(ENetClient client, string ip, ushort port, ulong netId)
         {
             _sessions.AddOrUpdate(client, new Session(ip, port, netId));
+        }
+
+        public string? HostAddress(INetGameService netService)
+        {
+            return netService is NetClientGameService { NetClient: ENetClient client } &&
+                   _sessions.TryGetValue(client, out var session)
+                ? session.Ip
+                : null;
         }
 
         public void Deliver(ENetClient client, ENetServiceData data)
@@ -233,12 +243,16 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                 }
                 else
                 {
+                    // The connection is destroyed right after this, so nothing gets a second chance: flush the
+                    // reason out first, then the disconnect itself. PeerDisconnectLater would wait for pending
+                    // packets and never send the disconnect, leaving the host to time us out as if we'd slept.
                     var eNetPacket = ENetPacket.FromDisconnection(new ENetDisconnection
                     {
                         reason = reason
                     });
-                    peer?.Send(0, eNetPacket.AllBytes, 8);
-                    peer?.PeerDisconnectLater(LanResumePacketHelper.GracefulDisconnectData);
+                    peer?.Send(ReliableChannel, eNetPacket.AllBytes, ReliableFlags);
+                    connection?.Flush();
+                    peer?.PeerDisconnect(LanResumePacketHelper.GracefulDisconnectData);
                 }
 
                 connection?.Flush();

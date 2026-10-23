@@ -1,5 +1,8 @@
 {
     "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Отключить рисование",
     "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "Соединение с создателем игры потеряно. Переподключение…",
-    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "Соединение с игроком {Player} потеряно. Ожидаем переподключения…"
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "Соединение с игроком {Player} потеряно. Ожидаем переподключения…",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT": "Начать бой заново",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.header": "Начать бой заново?",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.body": "Все вернутся к началу этого боя, пока игра заново загружает сохранение."
 }

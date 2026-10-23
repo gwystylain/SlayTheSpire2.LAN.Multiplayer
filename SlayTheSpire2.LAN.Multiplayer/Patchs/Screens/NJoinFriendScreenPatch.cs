@@ -2,6 +2,7 @@
 using HarmonyLib;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Multiplayer.Connection;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.MainMenu;
@@ -55,8 +56,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
 
             vBoxContainer.AddChildSafely(addressLineEdit);
 
-            var refreshButton = __instance.GetNode<NJoinFriendRefreshButton>("RefreshButton");
-            var joinButton = JoinButton.Create(refreshButton);
+            var joinButton = JoinButton.Create(__instance.GetNode<NJoinFriendRefreshButton>("RefreshButton"));
             joinButton.Name = "JointButton";
             vBoxContainer.AddChildSafely(joinButton);
 
@@ -81,21 +81,36 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
                 Join(addressInfo.Address, addressInfo.Port ?? 33771);
             }));
 
-            var titleLabel = __instance.GetNode<MegaLabel>("TitleLabel");
-
-            vBoxContainer.AddChildSafely(LanGameList.Create(refreshButton, titleLabel, game =>
+            __instance.AddChildSafely(LanLobbyList.Create(__instance, game =>
             {
                 addressLineEdit.Text = game.Port == 33771 ? game.Address : $"{game.Address}:{game.Port}";
                 Join(game.Address, game.Port);
             }));
 
-            var ipAddressLabel = (MegaLabel)titleLabel.Duplicate();
+            var ipAddressLabel = (MegaLabel)__instance.GetNode("TitleLabel").Duplicate();
             ipAddressLabel.CustomMinimumSize = new Vector2(300, 0);
             ipAddressLabel.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
             lanPanel.AddChildSafely(ipAddressLabel);
             ipAddressLabel.SetTextAutoSize("LAN IP:");
 
             __instance.AddChildSafely(lanPanel);
+        }
+    }
+
+    //A tap on the Deck's touchscreen can press a button twice (the touch, then the mouse click Godot emulates from
+    //it), and two joins at once collide on the host: the second gets a new net ID that isn't in the save, and the
+    //first fails. The loading overlay is up for as long as a join runs, so ignore joins while it is.
+    [HarmonyPatch(typeof(NJoinFriendScreen), nameof(NJoinFriendScreen.JoinGameAsync))]
+    internal class NJoinFriendScreenJoinGameAsyncPatch
+    {
+        private static bool Prefix(Control ____loadingOverlay, ref Task __result)
+        {
+            if (!____loadingOverlay.Visible)
+                return true;
+
+            Log.Warn("Already joining a game, ignoring another join");
+            __result = Task.CompletedTask;
+            return false;
         }
     }
 }

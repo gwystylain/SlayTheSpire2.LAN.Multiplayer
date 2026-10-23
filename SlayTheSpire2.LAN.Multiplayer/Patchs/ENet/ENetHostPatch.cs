@@ -66,6 +66,12 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
 
             var connectedPeerIdHashSet = new HashSet<ulong>(eNetHost.ConnectedPeerIds);
 
+            if (connectedPeerIdHashSet.Contains(handshakeNetId) &&
+                LanHostResumeService.Instance.DropStaleClient(eNetHost, handshakeNetId))
+            {
+                connectedPeerIdHashSet.Remove(handshakeNetId);
+            }
+
             if (connectedPeerIdHashSet.Contains(handshakeNetId))
             {
                 var newNetId = 1000u;

@@ -16,10 +16,10 @@ using Logger = MegaCrit.Sts2.Core.Logging.Logger;
 
 namespace SlayTheSpire2.LAN.Multiplayer.Services
 {
-    // The host's half of resuming a session. A client whose connection dies stays in the game's player
-    // list (the game's ENetHost never reported those drops anyway); what the game sends it is queued
-    // until it reconnects with its token, at which point its connection is swapped for the new one and
-    // each side resends what the other missed.
+    // The host's half of resuming a session. A client whose connection dies without saying goodbye stays
+    // in the game's player list; what the game sends it is queued until it reconnects with its token, at
+    // which point its connection is swapped for the new one and each side resends what the other missed.
+    // A client that leaves on purpose, or can't resume, is reported to the game as disconnected.
     internal class LanHostResumeService
     {
         private static readonly Lazy<LanHostResumeService> Lazy = new(() => new LanHostResumeService());
@@ -229,6 +229,29 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
             ConnectionStatusOverlay.Hide();
         }
 
+        // When a player joins again from scratch (their game restarted, or an earlier join failed) while their old
+        // connection is still listed but dead or waiting to resume, drops the old one so the join keeps its net ID.
+        // Otherwise the join counts as a second player with the same ID and gets a new one, which a loaded save
+        // doesn't know.
+        public bool DropStaleClient(ENetHost host, ulong netId)
+        {
+            var index = IndexOfNetId(host, netId);
+            if (index < 0)
+                return false;
+
+            ClientSession? client = null;
+            _hosts.TryGetValue(host, out var sessions);
+            sessions?.Clients.TryGetValue(netId, out client);
+            if (client is not { Suspended: true } && PeerAt(host, index).IsActive())
+                return false;
+
+            sessions?.Clients.Remove(netId);
+            RefLogger(host).Info($"Player {netId} joined again, dropping their old connection");
+            HandleClientDisconnectionMethod.Invoke(host,
+                [ConnectedPeers(host)[index], NetError.UnknownNetworkError, true]);
+            return true;
+        }
+
         private static void OnPeerDisconnected(ENetHost host, HostSessions sessions, ENetServiceData data)
         {
             sessions.ResumedPeers.Remove(data.peer);
@@ -237,13 +260,22 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                 return;
 
             var netId = NetIdAt(host, index);
-            if (!sessions.Clients.TryGetValue(netId, out var client) || !client.ClientResumes ||
-                client.Link.Overflowed || LanResumePacketHelper.IsGracefulDisconnect(data))
+            var graceful = LanResumePacketHelper.IsGracefulDisconnect(data);
+            if (sessions.Clients.TryGetValue(netId, out var client) && client is
+                    { ClientResumes: true, Link.Overflowed: false } && !graceful)
+            {
+                client.Suspended = true;
+                client.SuspendedAtMsec = Time.GetTicksMsec();
+                RefLogger(host).Info($"Lost the connection to player {netId}, waiting for them to reconnect");
                 return;
+            }
 
-            client.Suspended = true;
-            client.SuspendedAtMsec = Time.GetTicksMsec();
-            RefLogger(host).Info($"Lost the connection to player {netId}, waiting for them to reconnect");
+            // It left on purpose, or it can't resume: tell the game, as the Steam transport does. The game's own
+            // ENetHost ignored these, which kept the player's slot (and net ID) taken until the host restarted.
+            sessions.Clients.Remove(netId);
+            RefLogger(host).Info($"Player {netId} disconnected{(graceful ? "" : " and can't resume")}");
+            HandleClientDisconnectionMethod.Invoke(host,
+                [ConnectedPeers(host)[index], graceful ? NetError.Quit : NetError.UnknownNetworkError, true]);
         }
 
         private static void OnPacketReceived(ENetHost host, HostSessions sessions, ENetServiceData data)

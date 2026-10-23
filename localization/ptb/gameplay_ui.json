@@ -1,5 +1,8 @@
 {
     "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Desativar desenho",
     "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "Conexão com o anfitrião perdida. Reconectando...",
-    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "Conexão com {Player} perdida. Aguardando reconexão..."
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "Conexão com {Player} perdida. Aguardando reconexão...",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT": "Reiniciar Combate",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.header": "Reiniciar o combate?",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.body": "Todos voltam ao início deste combate enquanto o jogo carrega o jogo salvo de novo."
 }

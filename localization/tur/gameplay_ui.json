@@ -1,5 +1,8 @@
 {
     "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Çizimi devre dışı bırak",
     "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "Oda sahibiyle bağlantı koptu. Yeniden bağlanılıyor...",
-    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "{Player} ile bağlantı koptu. Yeniden bağlanması bekleniyor..."
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "{Player} ile bağlantı koptu. Yeniden bağlanması bekleniyor...",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT": "Savaşı Yeniden Başlat",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.header": "Savaş yeniden başlatılsın mı?",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.body": "Oyun kaydı yeniden yüklenirken herkes bu savaşın başına döner."
 }

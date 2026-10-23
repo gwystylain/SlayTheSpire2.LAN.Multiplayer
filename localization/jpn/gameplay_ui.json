@@ -1,5 +1,8 @@
 {
     "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "描画を無効にする",
     "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "ホストとの接続が切れました。再接続しています……",
-    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "{Player}との接続が切れました。再接続を待っています……"
+    "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "{Player}との接続が切れました。再接続を待っています……",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT": "戦闘をやり直す",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.header": "戦闘をやり直しますか？",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.body": "セーブデータを読み込み直し、全員がこの戦闘の最初に戻ります。"
 }
