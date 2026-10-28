@@ -128,8 +128,9 @@ def git(*args):
 
 
 def vdf_string(value):
-    # KeyValues strings take backslash escapes, so a Windows path's separators are doubled.
-    return str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+    # SteamCMD reads these strings literally: a \n escape reaches the Workshop page as the two characters, so
+    # line breaks stay real line breaks. Doubled path separators still resolve on Windows.
+    return str(value).replace("\\", "\\\\").replace('"', '\\"')
 
 
 def main():

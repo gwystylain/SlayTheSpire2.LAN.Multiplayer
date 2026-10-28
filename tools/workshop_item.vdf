@@ -12,6 +12,20 @@
 	"visibility"		"0"
 	// Every key here overwrites the Workshop page on each upload; edit them here, not on the web.
 	"title"			"SlayTheSpire2.LAN.Multiplayer (unlock everything)"
-	"description"		"Play Slay the Spire 2 co-op over your local network instead of through Steam.\n\n[list]\n[*][b]LAN lobby list[/b]: games on your network show up in the Join screen, tagged LAN. You can also join by IP.\n[*][b]Host settings[/b]: choose the port, player limit and your player name.\n[*][b]Reconnects on its own[/b]: if a connection drops mid-run, say when a Steam Deck sleeps, the run picks up where it left off.\n[*][b]Restart Encounter[/b]: the host can restart the current fight, event, shop or rest site from the pause menu.\n[*][b]Everything unlocked[/b]: all characters, cards, relics, potions and acts, every timeline epoch revealed (modded profile only), and any ascension in multiplayer.\n[*][b]Hide map drawings[/b] from any player.\n[/list]\nEveryone in a run needs the same version of the mod.\n\nA fork of kmyuhkyuk's SlayTheSpire2.LAN.Multiplayer, licensed GPL-3.0.\nUpstream: https://github.com/kmyuhkyuk/SlayTheSpire2.LAN.Multiplayer\nSource: https://github.com/gwystylain/SlayTheSpire2.LAN.Multiplayer"
+	"description"		"Play Slay the Spire 2 co-op over your local network instead of through Steam.
+
+[list]
+[*][b]LAN lobby list[/b]: games on your network show up in the Join screen, tagged LAN. You can also join by IP.
+[*][b]Host settings[/b]: choose the port, player limit and your player name.
+[*][b]Reconnects on its own[/b]: if a connection drops mid-run, say when a Steam Deck sleeps, the run picks up where it left off.
+[*][b]Restart Encounter[/b]: the host can restart the current fight, event, shop or rest site from the pause menu.
+[*][b]Everything unlocked[/b]: all characters, cards, relics, potions and acts, every timeline epoch revealed (modded profile only), and any ascension in multiplayer.
+[*][b]Hide map drawings[/b] from any player.
+[/list]
+Everyone in a run needs the same version of the mod.
+
+A fork of kmyuhkyuk's SlayTheSpire2.LAN.Multiplayer, licensed GPL-3.0.
+Upstream: https://github.com/kmyuhkyuk/SlayTheSpire2.LAN.Multiplayer
+Source: https://github.com/gwystylain/SlayTheSpire2.LAN.Multiplayer"
 	"changenote"		"${changenote}"
 }
