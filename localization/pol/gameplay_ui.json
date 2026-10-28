@@ -2,7 +2,7 @@
     "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Wyłącz rysowanie",
     "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "Utracono połączenie z hostem. Ponowne łączenie...",
     "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "Utracono połączenie z graczem {Player}. Oczekiwanie na ponowne połączenie...",
-    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT": "Zacznij walkę od nowa",
-    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.header": "Zacząć walkę od nowa?",
-    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.body": "Wszyscy wracają na początek tej walki, a gra ponownie wczytuje zapis."
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_ENCOUNTER": "Zacznij spotkanie od nowa",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_ENCOUNTER_CONFIRM.header": "Zacząć to spotkanie od nowa?",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_ENCOUNTER_CONFIRM.body": "Wszyscy wracają na początek tego spotkania, a gra ponownie wczytuje zapis."
 }

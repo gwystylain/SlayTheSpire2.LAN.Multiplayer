@@ -108,6 +108,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                         _errorLog.Error(logger, "Got error from ENetConnection!");
                         break;
                     case ENetConnection.EventType.Connect:
+                        logger.Info($"Incoming connection from {data.peer.GetRemoteAddress()}:{data.peer.GetRemotePort()}");
                         TaskHelper.RunSafely((Task)DoClientHandshakeMethod.Invoke(host, [data.peer])!);
                         break;
                     case ENetConnection.EventType.Disconnect:

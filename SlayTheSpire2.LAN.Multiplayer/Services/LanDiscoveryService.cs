@@ -36,6 +36,9 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
 
         private readonly Dictionary<string, FoundGame> _found = new();
 
+        // Addresses whose search this hosting session has answered, so each is logged once.
+        private readonly HashSet<string> _answered = new();
+
         private Socket? _responder;
 
         private ushort _hostPort;
@@ -73,6 +76,9 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                 };
                 _responder.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 _responder.Bind(new IPEndPoint(IPAddress.Any, DiscoveryPort));
+                _answered.Clear();
+                Log.Info(
+                    $"Answering LAN game searches on UDP port {DiscoveryPort}; this device is at {DescribeLocalAddresses()}");
             }
             catch (SocketException ex)
             {
@@ -102,6 +108,10 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                     if (length >= QueryMagic.Length + 1 && _buffer.AsSpan(0, QueryMagic.Length).SequenceEqual(QueryMagic))
                     {
                         _responder.SendTo(BuildAnswer(), remote);
+                        if (_answered.Add(((IPEndPoint)remote).Address.ToString()))
+                        {
+                            Log.Info($"Answered a LAN game search from {remote}");
+                        }
                     }
                 }
             }
@@ -126,6 +136,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                     };
                     _scanner.Bind(new IPEndPoint(IPAddress.Any, 0));
                     _lastQueryMsec = 0;
+                    Log.Info(
+                        $"Searching for LAN games via {string.Join(", ", BroadcastAddresses())}; this device is at {DescribeLocalAddresses()}");
                 }
                 catch (SocketException ex)
                 {
@@ -151,7 +163,15 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                             out var game))
                     {
                         game.LastSeenMsec = now;
-                        _found[$"{game.Address}:{game.Port}"] = game;
+                        var key = $"{game.Address}:{game.Port}";
+                        if (!_found.TryGetValue(key, out var known) || known.InRun != game.InRun ||
+                            known.HostName != game.HostName)
+                        {
+                            Log.Info(
+                                $"Found LAN game \"{game.HostName}\" at {key}{(game.InRun ? ", run in progress" : "")}");
+                        }
+
+                        _found[key] = game;
                     }
                 }
             }
@@ -164,6 +184,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
             {
                 if (now - game.LastSeenMsec > ForgetAfterMsec)
                 {
+                    Log.Info($"LAN game at {key} stopped answering");
                     _found.Remove(key);
                 }
             }
@@ -197,11 +218,38 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
             }
         }
 
+        // For the log: which networks this device is on, e.g. "wlan0 10.36.95.92/24".
+        public static string DescribeLocalAddresses()
+        {
+            var addresses = LocalAddresses()
+                .Select(local => $"{local.Interface} {local.Address.Address}/{local.Address.PrefixLength}")
+                .ToList();
+            return addresses.Count > 0 ? string.Join(", ", addresses) : "no network";
+        }
+
         // The limited broadcast address only leaves through the default route, so also send to each
         // network's own broadcast address in case the Deck is on more than one.
         private static IEnumerable<IPAddress> BroadcastAddresses()
         {
             var addresses = new HashSet<IPAddress> { IPAddress.Broadcast };
+            foreach (var (_, unicast) in LocalAddresses())
+            {
+                var bytes = unicast.Address.GetAddressBytes();
+                var mask = unicast.IPv4Mask.GetAddressBytes();
+                for (var i = 0; i < bytes.Length; i++)
+                {
+                    bytes[i] |= (byte)~mask[i];
+                }
+
+                addresses.Add(new IPAddress(bytes));
+            }
+
+            return addresses;
+        }
+
+        private static List<(string Interface, UnicastIPAddressInformation Address)> LocalAddresses()
+        {
+            var addresses = new List<(string, UnicastIPAddressInformation)>();
             try
             {
                 foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
@@ -210,20 +258,9 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                         nic.NetworkInterfaceType == NetworkInterfaceType.Loopback)
                         continue;
 
-                    foreach (var unicast in nic.GetIPProperties().UnicastAddresses)
-                    {
-                        if (unicast.Address.AddressFamily != AddressFamily.InterNetwork)
-                            continue;
-
-                        var bytes = unicast.Address.GetAddressBytes();
-                        var mask = unicast.IPv4Mask.GetAddressBytes();
-                        for (var i = 0; i < bytes.Length; i++)
-                        {
-                            bytes[i] |= (byte)~mask[i];
-                        }
-
-                        addresses.Add(new IPAddress(bytes));
-                    }
+                    addresses.AddRange(nic.GetIPProperties().UnicastAddresses
+                        .Where(unicast => unicast.Address.AddressFamily == AddressFamily.InterNetwork)
+                        .Select(unicast => (nic.Name, unicast)));
                 }
             }
             catch (Exception ex) when (ex is NetworkInformationException or PlatformNotSupportedException)

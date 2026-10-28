@@ -2,7 +2,7 @@
     "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "ปิดใช้งานการวาดภาพ",
     "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "การเชื่อมต่อกับเจ้าของห้องขาดหาย กำลังเชื่อมต่อใหม่...",
     "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "การเชื่อมต่อกับ {Player} ขาดหาย กำลังรอให้เชื่อมต่อใหม่...",
-    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT": "เริ่มการต่อสู้ใหม่",
-    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.header": "เริ่มการต่อสู้ใหม่ไหม?",
-    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.body": "ทุกคนจะกลับไปเริ่มการต่อสู้นี้ใหม่ ขณะที่เกมโหลดเซฟอีกครั้ง"
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_ENCOUNTER": "เริ่มการเผชิญหน้าใหม่",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_ENCOUNTER_CONFIRM.header": "เริ่มการเผชิญหน้านี้ใหม่ไหม?",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_ENCOUNTER_CONFIRM.body": "ทุกคนจะกลับไปเริ่มการเผชิญหน้านี้ใหม่ ขณะที่เกมโหลดเซฟอีกครั้ง"
 }

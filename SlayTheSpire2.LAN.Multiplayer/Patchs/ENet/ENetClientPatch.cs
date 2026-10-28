@@ -39,8 +39,22 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
             {
                 var connection = new ENetConnection();
                 Traverse.Create(eNetClient).Field("_connection").SetValue(connection);
-                connection.CreateHost();
+                var createError = connection.CreateHost();
+                if (createError != Error.Ok)
+                {
+                    logger.Error($"Couldn't open a socket to connect with: {createError}");
+                    return new NetErrorInfo(NetError.UnknownNetworkError, selfInitiated: false);
+                }
+
+                logger.Info(
+                    $"Connecting to {ip}:{port} as net ID {netId}; this device is at {LanDiscoveryService.DescribeLocalAddresses()}");
                 var peer = connection.ConnectToHost(ip, port);
+                if (peer == null)
+                {
+                    logger.Error($"Couldn't start a connection to {ip}:{port}");
+                    return new NetErrorInfo(NetError.UnknownNetworkError, selfInitiated: false);
+                }
+
                 Traverse.Create(eNetClient).Field("_peer").SetValue(peer);
                 var timeoutTimer = 0;
                 while (!connection.TryService(out var output) ||
@@ -58,7 +72,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
                     if (timeoutTimer > 10000)
                     {
                         peer.Reset();
-                        logger.Error("Connection timed out!");
+                        logger.Error($"Connection to {ip}:{port} timed out: nothing answered within 10 seconds");
                         return new NetErrorInfo(NetError.Timeout, selfInitiated: false);
                     }
                 }
@@ -68,6 +82,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
                     logger.Error($"Connection to {ip}:{port} failed!");
                     return new NetErrorInfo(NetError.UnknownNetworkError, selfInitiated: false);
                 }
+
+                logger.Info($"Connected to {ip}:{port}");
 
                 var bufferedPackets = new List<ENetServiceData>();
                 var (result, newNetId) = await SendAndWaitForNetIdAck(eNetClient, logger, peer, connection, netId,
@@ -157,7 +173,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
                 timeoutTimer += 100;
                 if (timeoutTimer > 10000)
                 {
-                    logger.Error("Timed out waiting for handshake ack!");
+                    logger.Error($"Timed out waiting for {peer.GetRemoteAddress()} to acknowledge the handshake!");
                     eNetClient.DisconnectFromHost(NetError.Timeout);
                     return (new NetErrorInfo(NetError.Timeout, selfInitiated: false), netId);
                 }

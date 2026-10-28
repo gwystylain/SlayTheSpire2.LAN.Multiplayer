@@ -78,11 +78,13 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
                 if (!addressInfo.IsValid || addressInfo.Address == null)
                     return;
 
+                Log.Info($"Joining {addressLineEdit.Text} from the address box");
                 Join(addressInfo.Address, addressInfo.Port ?? 33771);
             }));
 
             __instance.AddChildSafely(LanLobbyList.Create(__instance, game =>
             {
+                Log.Info($"Joining LAN game \"{game.HostName}\" at {game.Address}:{game.Port}");
                 addressLineEdit.Text = game.Port == 33771 ? game.Address : $"{game.Address}:{game.Port}";
                 Join(game.Address, game.Port);
             }));

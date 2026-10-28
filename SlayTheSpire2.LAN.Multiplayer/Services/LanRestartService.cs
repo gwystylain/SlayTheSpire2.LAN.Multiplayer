@@ -12,11 +12,11 @@ using SlayTheSpire2.LAN.Multiplayer.Models;
 
 namespace SlayTheSpire2.LAN.Multiplayer.Services
 {
-    // Restarts the current fight for everyone by doing what players would do by hand. The host tells the
-    // clients, saves and quits, hosts the save again and readies up once everyone is back; the save was written
-    // when the fight's room was entered, so loading it starts the fight over. Each client skips the "host left"
-    // popup, opens the join screen, joins the host as soon as its lobby shows up there, and readies up. If a step
-    // doesn't happen within a couple of minutes, it gives up and leaves the rest to the players.
+    // Restarts the current encounter (a fight, event, shop, rest site...) for everyone by doing what players would
+    // do by hand. The host tells the clients, saves and quits, hosts the save again and readies up once everyone is
+    // back; the save was written when the room was entered, so loading it starts the room over. Each client skips
+    // the "host left" popup, opens the join screen, joins the host as soon as its lobby shows up there, and readies
+    // up. If a step doesn't happen within a couple of minutes, it gives up and leaves the rest to the players.
     internal class LanRestartService
     {
         private static readonly Lazy<LanRestartService> Lazy = new(() => new LanRestartService());
@@ -49,28 +49,28 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
             if (_stage == Stage.None || Time.GetTicksMsec() - _startedMsec <= TimeoutMsec)
                 return _stage == stage;
 
-            Log.Warn($"Gave up restarting the fight at {_stage}");
+            Log.Warn($"Gave up restarting the encounter at {_stage}");
             _stage = Stage.None;
             return false;
         }
 
         public async Task RestartAsHost()
         {
-            Log.Info("Restarting the fight: hosting the save again");
-            RunManager.Instance.NetService.SendMessage(new LanRestartFightMessage());
+            Log.Info("Restarting the encounter: hosting the save again");
+            RunManager.Instance.NetService.SendMessage(new LanRestartEncounterMessage());
             _stage = Stage.HostRehosting;
             _startedMsec = Time.GetTicksMsec();
             NRunMusicController.Instance?.StopMusic();
             await NGame.Instance!.ReturnToMainMenu();
         }
 
-        public void HandleLanRestartFightMessage(LanRestartFightMessage message, ulong senderId)
+        public void HandleLanRestartEncounterMessage(LanRestartEncounterMessage message, ulong senderId)
         {
             _hostAddress = LanClientResumeService.Instance.HostAddress(RunManager.Instance.NetService);
             if (_hostAddress == null)
                 return;
 
-            Log.Info($"Host at {_hostAddress} is restarting the fight, rejoining it once it's back");
+            Log.Info($"Host at {_hostAddress} is restarting the encounter, rejoining it once it's back");
             _stage = Stage.ClientRejoining;
             _startedMsec = Time.GetTicksMsec();
         }

@@ -2,7 +2,7 @@
     "SlayTheSpire2.LAN.Multiplayer.DISABLE_DRAWING": "Disabilita il disegno",
     "SlayTheSpire2.LAN.Multiplayer.RECONNECTING_TO_HOST": "Connessione persa con chi ha creato la partita. Riconnessione...",
     "SlayTheSpire2.LAN.Multiplayer.WAITING_FOR_PLAYER": "Connessione persa con {Player}. In attesa che si riconnetta...",
-    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT": "Ricomincia lo scontro",
-    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.header": "Ricominciare lo scontro?",
-    "SlayTheSpire2.LAN.Multiplayer.RESTART_FIGHT_CONFIRM.body": "Tutti tornano all'inizio di questo scontro mentre il gioco ricarica il salvataggio."
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_ENCOUNTER": "Ricomincia l'incontro",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_ENCOUNTER_CONFIRM.header": "Ricominciare questo incontro?",
+    "SlayTheSpire2.LAN.Multiplayer.RESTART_ENCOUNTER_CONFIRM.body": "Tutti tornano all'inizio di questo incontro mentre il gioco ricarica il salvataggio."
 }

@@ -3,7 +3,7 @@
   "name": "SlayTheSpire2.LAN.Multiplayer",
   "author": "Kmyuhkyuk",
   "description": "Added Local network multiplayer feature interface, Custom host port and maximum players settings.\r\n\r\nhttps://github.com/kmyuhkyuk/SlayTheSpire2.LAN.Multiplayer",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "has_pck": true,
   "has_dll": true,
   "dependencies": [],

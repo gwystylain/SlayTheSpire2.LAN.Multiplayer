@@ -53,7 +53,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.ENet
                     timeoutTimer += 100;
                     if (timeoutTimer >= 10000)
                     {
-                        logger.Error("Timed out waiting for handshake!");
+                        logger.Error($"Timed out waiting for a handshake from {peer.GetRemoteAddress()}!");
                         LanHostResumeService.RetirePeer(peer);
                         return;
                     }

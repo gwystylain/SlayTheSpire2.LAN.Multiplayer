@@ -19,8 +19,9 @@ Everyone in a run needs the same version. Joining with a different one fails and
 - **Finding games.** Games hosted on your network appear at the top of the Join screen's lobby list, tagged
   LAN, alongside Steam friends' lobbies; pick one to join it. Hosts answer on UDP port 33770, so a firewall
   that blocks it hides the game from the list, though typing the host's address still works.
-- **Restarting a fight.** Mid-fight, the host's pause menu has Restart Fight. It saves and quits, hosts that
-  save again and brings everyone back in, so the fight starts over from when its room was entered.
+- **Restarting an encounter.** During a run, the host's pause menu has Restart Encounter. It saves and quits,
+  hosts that save again and brings everyone back in, so the current room (a fight, event, shop or rest site)
+  starts over from when it was entered.
 - **Sleep and dropped connections.** If the connection drops mid-game, for example because a Steam Deck went
   to sleep, nobody is sent back to the menu. The client keeps reconnecting to the host and the run picks up
   where it left off, with a banner on screen in the meantime. This only works while the host keeps the same
