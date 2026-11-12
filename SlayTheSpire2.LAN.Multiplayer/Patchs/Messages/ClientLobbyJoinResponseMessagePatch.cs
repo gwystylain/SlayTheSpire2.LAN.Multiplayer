@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Daily;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Messages.Lobby;
 using MegaCrit.Sts2.Core.Multiplayer.Serialization;
+using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using SlayTheSpire2.LAN.Multiplayer.Helpers;
 
@@ -34,6 +35,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Messages
                 writer.WriteString(__instance.seed);
             }
 
+            writer.WriteEnum(__instance.gameMode);
+            writer.WriteBool(__instance.isCustom);
             writer.WriteInt(__instance.ascension, 5);
             writer.WriteList(__instance.modifiers);
 
@@ -57,6 +60,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Messages
                 __instance.seed = reader.ReadString();
             }
 
+            __instance.gameMode = reader.ReadEnum<GameMode>();
+            __instance.isCustom = reader.ReadBool();
             __instance.ascension = reader.ReadInt(5);
             __instance.modifiers = reader.ReadList<SerializableModifier>();
             return false;

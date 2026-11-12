@@ -9,9 +9,11 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Multiplayer;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Multiplayer;
+using MegaCrit.Sts2.Core.Nodes.Screens.Blitz;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.Screens.CustomRun;
 using MegaCrit.Sts2.Core.Nodes.Screens.DailyRun;
+using MegaCrit.Sts2.Core.Nodes.Screens.Dread;
 using MegaCrit.Sts2.Core.Nodes.Screens.MainMenu;
 using MegaCrit.Sts2.Core.Platform;
 using MegaCrit.Sts2.Core.Runs;
@@ -35,8 +37,9 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
                     BindingFlags.Instance | BindingFlags.NonPublic)!);
         }
 
-        public static void StartHost(GameMode gameMode, Control loadingOverlay, NSubmenuStack stack, ushort port,
-            int maxPlayers)
+        //Mirrors NMultiplayerHostSubmenu.StartHostAsync, hosting over ENet on the configured port and player count
+        public static void StartHost(GameMode gameMode, bool isCustom, Control loadingOverlay, NSubmenuStack stack,
+            ushort port, int maxPlayers)
         {
             loadingOverlay.Visible = true;
             try
@@ -48,29 +51,46 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
                 Log.Info($"HostGame open on port:{port}");
                 if (!netErrorInfo.HasValue)
                 {
+                    if (isCustom)
+                    {
+                        var customRunScreen = stack.GetSubmenuType<NCustomRunScreen>();
+                        customRunScreen.InitializeMultiplayerAsHost(netService, maxPlayers);
+                        stack.Push(customRunScreen);
+                        return;
+                    }
+
                     switch (gameMode)
                     {
                         case GameMode.Standard:
                         {
-                            var submenuType3 = stack.GetSubmenuType<NCharacterSelectScreen>();
-                            submenuType3.InitializeMultiplayerAsHost(netService, maxPlayers);
-                            stack.Push(submenuType3);
+                            var characterSelectScreen = stack.GetSubmenuType<NCharacterSelectScreen>();
+                            characterSelectScreen.InitializeMultiplayerAsHost(netService, maxPlayers);
+                            stack.Push(characterSelectScreen);
                             break;
                         }
                         case GameMode.Daily:
                         {
-                            var submenuType2 = stack.GetSubmenuType<NDailyRunScreen>();
-                            submenuType2.InitializeMultiplayerAsHost(netService);
-                            stack.Push(submenuType2);
+                            var dailyRunScreen = stack.GetSubmenuType<NDailyRunScreen>();
+                            dailyRunScreen.InitializeMultiplayerAsHost(netService);
+                            stack.Push(dailyRunScreen);
+                            break;
+                        }
+                        case GameMode.Blitz:
+                        {
+                            var blitzScreen = stack.GetSubmenuType<NBlitzScreen>();
+                            blitzScreen.InitializeMultiplayerAsHost(netService, maxPlayers);
+                            stack.Push(blitzScreen);
+                            break;
+                        }
+                        case GameMode.Dread:
+                        {
+                            var dreadScreen = stack.GetSubmenuType<NDreadScreen>();
+                            dreadScreen.InitializeMultiplayerAsHost(netService, maxPlayers);
+                            stack.Push(dreadScreen);
                             break;
                         }
                         default:
-                        {
-                            var submenuType = stack.GetSubmenuType<NCustomRunScreen>();
-                            submenuType.InitializeMultiplayerAsHost(netService, maxPlayers);
-                            stack.Push(submenuType);
-                            break;
-                        }
+                            throw new InvalidOperationException($"Can't host game mode {gameMode}");
                     }
                 }
                 else
@@ -110,29 +130,24 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
                 Log.Info($"HostGame open on port:{port}");
                 if (!netErrorInfo.HasValue)
                 {
-                    switch (run.GameMode)
+                    //Same routing as NMultiplayerSubmenu.StartHostAsync: Blitz and Dread load on the standard screen
+                    if (run.GameMode == GameMode.Daily)
                     {
-                        case GameMode.Daily:
-                        {
-                            var submenuType = stack.GetSubmenuType<NDailyRunLoadScreen>();
-                            submenuType.InitializeAsHost(netService, run);
-                            stack.Push(submenuType);
-                            break;
-                        }
-                        case GameMode.Custom:
-                        {
-                            var submenuType2 = stack.GetSubmenuType<NCustomRunLoadScreen>();
-                            submenuType2.InitializeAsHost(netService, run);
-                            stack.Push(submenuType2);
-                            break;
-                        }
-                        default:
-                        {
-                            var submenuType3 = stack.GetSubmenuType<NMultiplayerLoadGameScreen>();
-                            submenuType3.InitializeAsHost(netService, run);
-                            stack.Push(submenuType3);
-                            break;
-                        }
+                        var dailyRunLoadScreen = stack.GetSubmenuType<NDailyRunLoadScreen>();
+                        dailyRunLoadScreen.InitializeAsHost(netService, run);
+                        stack.Push(dailyRunLoadScreen);
+                    }
+                    else if (run.IsCustomGame)
+                    {
+                        var customRunLoadScreen = stack.GetSubmenuType<NCustomRunLoadScreen>();
+                        customRunLoadScreen.InitializeAsHost(netService, run);
+                        stack.Push(customRunLoadScreen);
+                    }
+                    else
+                    {
+                        var multiplayerLoadGameScreen = stack.GetSubmenuType<NMultiplayerLoadGameScreen>();
+                        multiplayerLoadGameScreen.InitializeAsHost(netService, run);
+                        stack.Push(multiplayerLoadGameScreen);
                     }
                 }
                 else
@@ -158,12 +173,9 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
                     PlatformUtil.GetLocalPlayerId(PlatformType.None));
             if (!readSaveResult.Success || readSaveResult.SaveData == null)
             {
-                Log.Warn("Broken multiplayer run save detected, disabling button");
+                Log.Warn($"LAN run save could not be loaded (status={readSaveResult.Status}), disabling button");
                 nSubmenuButton.Disable();
-                var modalToCreate = NErrorPopup.Create(
-                    new LocString("main_menu_ui", "INVALID_SAVE_POPUP.title"),
-                    new LocString("main_menu_ui", "INVALID_SAVE_POPUP.description_run"),
-                    new LocString("main_menu_ui", "INVALID_SAVE_POPUP.dismiss"), showReportBugButton: true);
+                var modalToCreate = NErrorPopup.CreateForRunSave(readSaveResult.Status);
                 if (modalToCreate != null)
                 {
                     NModalContainer.Instance?.Add(modalToCreate);
@@ -192,9 +204,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
             if (nGenericPopup == null || !await nGenericPopup.WaitForConfirmation(body, header, noButton, yesButton))
                 return;
 
-            var readSaveResult =
-                LanRunSaveManagerService.Instance.LoadAndCanonicalizeMultiplayerRunSave(
-                    PlatformUtil.GetLocalPlayerId(PlatformType.None));
+            var localPlayerId = PlatformUtil.GetLocalPlayerId(PlatformType.None);
+            var readSaveResult = LanRunSaveManagerService.Instance.LoadAndCanonicalizeMultiplayerRunSave(localPlayerId);
             if (readSaveResult is { Success: true, SaveData: not null })
             {
                 try
@@ -205,8 +216,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
                         saveData.PlatformType);
                     if (saveData.DailyTime.HasValue)
                     {
-                        PlatformUtil.GetLocalPlayerId(saveData.PlatformType);
-                        var score = ScoreUtility.CalculateScore(saveData, won: false);
+                        var score = ScoreUtility.CalculateDailyScore(saveData, localPlayerId, isVictory: false);
                         _ = TaskHelper.RunSafely(DailyRunUtility.UploadScore(saveData.DailyTime.Value, score,
                             saveData.Players));
                     }

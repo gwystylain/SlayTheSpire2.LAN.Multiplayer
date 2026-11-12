@@ -11,11 +11,14 @@ using SlayTheSpire2.LAN.Multiplayer.Services;
 
 namespace SlayTheSpire2.LAN.Multiplayer.Components
 {
+    //The game's host submenu (Standard, Daily, Blitz, Dread, Custom) hosting over LAN instead of Steam. The game's
+    //_Ready wires up the buttons; NMultiplayerHostSubmenuStartHostPatch sends their presses to StartLanHost.
     internal partial class LanMultiplayerHostSubmenu : NMultiplayerHostSubmenu
     {
         private static readonly string ScenePath = SceneHelper.GetScenePath("screens/multiplayer_host_submenu");
 
-        private Control? _loadingOverlay;
+        private static readonly AccessTools.FieldRef<NMultiplayerHostSubmenu, Control> RefLoadingOverlay =
+            AccessTools.FieldRefAccess<NMultiplayerHostSubmenu, Control>("_loadingOverlay");
 
         public new static LanMultiplayerHostSubmenu? Create()
         {
@@ -29,9 +32,19 @@ namespace SlayTheSpire2.LAN.Multiplayer.Components
 
             lanMultiplayerHostSubmenu.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
 
+            //The scene's nodes belong to its root, and the game finds them by unique name (%StandardButton), which
+            //only resolves through the owner. Take over the nodes and their ownership so those lookups work here.
+            var ownedNodes = new List<Node>();
+            CollectOwnedNodes(multiplayerHostSubmenu, multiplayerHostSubmenu, ownedNodes);
+
             foreach (var child in multiplayerHostSubmenu.GetChildren())
             {
                 child.Reparent(lanMultiplayerHostSubmenu, false);
+            }
+
+            foreach (var node in ownedNodes)
+            {
+                node.Owner = lanMultiplayerHostSubmenu;
             }
 
             multiplayerHostSubmenu.QueueFreeSafely();
@@ -39,57 +52,30 @@ namespace SlayTheSpire2.LAN.Multiplayer.Components
             return lanMultiplayerHostSubmenu;
         }
 
+        private static void CollectOwnedNodes(Node node, Node owner, List<Node> ownedNodes)
+        {
+            foreach (var child in node.GetChildren())
+            {
+                if (child.Owner == owner)
+                {
+                    ownedNodes.Add(child);
+                }
+
+                CollectOwnedNodes(child, owner, ownedNodes);
+            }
+        }
+
         public override void _Ready()
         {
-            ConnectSignals();
-
-            var loadingOverlay = GetNode<Control>("LoadingOverlay");
-            Traverse.Create(this).Field("_loadingOverlay").SetValue(loadingOverlay);
-            _loadingOverlay = loadingOverlay;
-
-            var standardButton = GetNode<NSubmenuButton>("StandardButton");
-            Traverse.Create(this).Field("_standardButton").SetValue(standardButton);
-
-            standardButton.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(OnStandardPressed));
-            standardButton.SetIconAndLocalization("STANDARD_MP");
-
-            var dailyButton = GetNode<NSubmenuButton>("DailyButton");
-            Traverse.Create(this).Field("_dailyButton").SetValue(dailyButton);
-
-            dailyButton.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(OnDailyPressed));
-            dailyButton.SetIconAndLocalization("DAILY_MP");
-
-            var customButton = GetNode<NSubmenuButton>("CustomRunButton");
-            Traverse.Create(this).Field("_customButton").SetValue(customButton);
-
-            customButton.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(OnCustomPressed));
-            customButton.SetIconAndLocalization("CUSTOM_MP");
+            base._Ready();
         }
 
-        private void OnStandardPressed(NButton _)
+        public void StartLanHost(GameMode gameMode, bool isCustom)
         {
-            StartHost(GameMode.Standard);
-        }
+            var settingsModel = SettingsService.Instance.SettingsModel;
 
-        private void OnDailyPressed(NButton _)
-        {
-            StartHost(GameMode.Daily);
-        }
-
-        private void OnCustomPressed(NButton _)
-        {
-            StartHost(GameMode.Custom);
-        }
-
-        private new void StartHost(GameMode gameMode)
-        {
-            if (_loadingOverlay != null)
-            {
-                var settingsModel = SettingsService.Instance.SettingsModel;
-
-                LanHostHelper.StartHost(gameMode, _loadingOverlay, _stack, settingsModel.HostPort,
-                    settingsModel.HostMaxPlayers);
-            }
+            LanHostHelper.StartHost(gameMode, isCustom, RefLoadingOverlay(this), _stack, settingsModel.HostPort,
+                settingsModel.HostMaxPlayers);
         }
     }
 }

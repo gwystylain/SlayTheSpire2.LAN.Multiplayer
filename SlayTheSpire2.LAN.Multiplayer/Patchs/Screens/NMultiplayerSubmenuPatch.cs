@@ -29,7 +29,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
             buttonContainerNode.AddChildSafely(lanHostButton);
             buttonContainerNode.MoveChild(lanHostButton, 1);
 
-            lanHostButton.SetIconAndLocalization("HOST");
+            lanHostButton.SetLocalization("HOST");
+            lanHostButton.SetIcon("host");
 
             var lanHostTitle = Traverse.Create(lanHostButton).Field("_title").GetValue<MegaLabel>();
             lanHostTitle.SetTextAutoSize($"LAN {lanHostTitle.Text}");
@@ -49,7 +50,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
                     }
                     else
                     {
-                        LanHostHelper.StartHost(GameMode.Standard,
+                        LanHostHelper.StartHost(GameMode.Standard, isCustom: false,
                             traverse.Field("_loadingOverlay").GetValue<Control>(), stack, settingsModel.HostPort,
                             settingsModel.HostMaxPlayers);
                     }
@@ -64,7 +65,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
             buttonContainerNode.AddChildSafely(lanLoadButton);
             buttonContainerNode.MoveChild(lanLoadButton, 2);
 
-            lanLoadButton.SetIconAndLocalization("MP_LOAD");
+            lanLoadButton.SetLocalization("MP_LOAD");
+            lanLoadButton.SetIcon("load");
 
             var lanLoadButtonTitle = Traverse.Create(lanLoadButton).Field("_title").GetValue<MegaLabel>();
             lanLoadButtonTitle.SetTextAutoSize($"LAN {lanLoadButtonTitle.Text}");
@@ -90,7 +92,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
             buttonContainerNode.AddChildSafely(lanAbandonButton);
             buttonContainerNode.MoveChild(lanAbandonButton, 3);
 
-            lanAbandonButton.SetIconAndLocalization("MP_ABANDON");
+            lanAbandonButton.SetLocalization("MP_ABANDON");
+            lanAbandonButton.SetIcon("abandon");
 
             var lanAbandonButtonTitle = Traverse.Create(lanAbandonButton).Field("_title").GetValue<MegaLabel>();
             lanAbandonButtonTitle.SetTextAutoSize($"LAN {lanAbandonButtonTitle.Text}");

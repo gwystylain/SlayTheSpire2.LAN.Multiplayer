@@ -1,11 +1,8 @@
 ﻿using System.Reflection;
 using HarmonyLib;
-using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Platform;
-using MegaCrit.Sts2.Core.Runs;
-using MegaCrit.Sts2.Core.Saves;
 using SlayTheSpire2.LAN.Multiplayer.Models;
 using SlayTheSpire2.LAN.Multiplayer.Services;
 
@@ -17,18 +14,28 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
     [HarmonyPatch]
     internal class RunLobbyConstructorPatchs
     {
+        //Every lobby constructor that takes the net service, whatever its other parameters: the game reshapes these
+        //between versions (v0.113 added isCustom to StartRunLobby), and an exact signature here broke the whole mod.
+        //Some overloads chain to another (": this(...)"), so the prefix can run twice for one lobby; it's idempotent.
         private static IEnumerable<MethodBase> TargetMethods()
         {
-            yield return typeof(StartRunLobby).GetConstructor([
-                typeof(GameMode), typeof(INetGameService), typeof(IStartRunLobbyListener), typeof(int)
-            ])!;
-            yield return typeof(RunLobby).GetConstructor([
-                typeof(GameMode), typeof(INetGameService), typeof(IRunLobbyListener), typeof(IPlayerCollection),
-                typeof(IEnumerable<RunLobbyPlayer>)
-            ])!;
-            yield return typeof(LoadRunLobby).GetConstructor([
-                typeof(INetGameService), typeof(ILoadRunLobbyListener), typeof(SerializableRun)
-            ])!;
+            Type[] lobbyTypes = [typeof(StartRunLobby), typeof(RunLobby), typeof(LoadRunLobby)];
+
+            foreach (var lobbyType in lobbyTypes)
+            {
+                var constructors = lobbyType.GetConstructors(BindingFlags.Instance | BindingFlags.Public)
+                    .Where(constructor => constructor.GetParameters().Any(parameter =>
+                        parameter.Name == "netService" && parameter.ParameterType == typeof(INetGameService)))
+                    .ToList();
+
+                if (constructors.Count == 0)
+                    throw new MissingMethodException(lobbyType.FullName, ".ctor(..., INetGameService netService, ...)");
+
+                foreach (var constructor in constructors)
+                {
+                    yield return constructor;
+                }
+            }
         }
 
         private static void Prefix(INetGameService netService)
@@ -39,11 +46,15 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
 
                 lanPlayerNameService.NetService = netService;
 
+                netService.UnregisterMessageHandler<LanPlayerNameResponseMessage>(lanPlayerNameService
+                    .HandleLanPlayerNameResponseMessage);
                 netService.RegisterMessageHandler<LanPlayerNameResponseMessage>(lanPlayerNameService
                     .HandleLanPlayerNameResponseMessage);
 
                 if (netService.Type == NetGameType.Host)
                 {
+                    netService.UnregisterMessageHandler<LanPlayerNameRequestMessage>(lanPlayerNameService
+                        .HandleLanPlayerNameRequestMessage);
                     netService.RegisterMessageHandler<LanPlayerNameRequestMessage>(lanPlayerNameService
                         .HandleLanPlayerNameRequestMessage);
                 }

@@ -1,11 +1,8 @@
 ﻿using HarmonyLib;
-using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
-using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Multiplayer.Messages.Game;
-using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
 
@@ -14,118 +11,74 @@ using Logger = MegaCrit.Sts2.Core.Logging.Logger;
 
 namespace SlayTheSpire2.LAN.Multiplayer.Patchs
 {
-    [HarmonyPatch(typeof(CombatStateSynchronizer), "WaitForSync")]
-    internal class CombatStateSynchronizerWaitForSyncPatch
+    //Between rooms every peer waits for every other peer's combat sync, with no time limit, so one lost message (from
+    //a Deck that just woke up, say) hangs the run. Watch each sync the game starts: while the host is still waiting it
+    //resends its RNG every few seconds, and after 30 seconds the wait is released so the run goes on. The game's own
+    //WaitForSync then applies whatever arrived and resets the synchronizer for the next sync.
+    //Whether it's a LAN game isn't checked, because the sync issue may also occur when connected via Steam.
+    [HarmonyPatch(typeof(CombatStateSynchronizer), nameof(CombatStateSynchronizer.StartSync))]
+    internal class CombatStateSynchronizerStartSyncPatch
     {
-        private static bool Prefix(CombatStateSynchronizer __instance, Logger ____logger,
-            INetGameService ____netService, TaskCompletionSource? ____syncCompletionSource,
-            Dictionary<ulong, SerializablePlayer> ____syncData, RunState ____runState, RunLobby? ____runLobby,
-            SerializableRunRngSet? ____rngSet, SerializableRelicGrabBag? ____sharedRelicGrabBag, ref Task __result)
+        private const int TimeoutSeconds = 30;
+
+        private const int ResendIntervalSeconds = 5;
+
+        private static readonly AccessTools.FieldRef<CombatStateSynchronizer, SerializableRunRngSet?> RefRngSet =
+            AccessTools.FieldRefAccess<CombatStateSynchronizer, SerializableRunRngSet?>("_rngSet");
+
+        private static readonly AccessTools.FieldRef<CombatStateSynchronizer, SerializableRelicGrabBag?>
+            RefSharedRelicGrabBag =
+                AccessTools.FieldRefAccess<CombatStateSynchronizer, SerializableRelicGrabBag?>("_sharedRelicGrabBag");
+
+        private static void Postfix(CombatStateSynchronizer __instance, Logger ____logger,
+            INetGameService ____netService, TaskCompletionSource? ____syncCompletionSource)
         {
-            //Whether is LAN game was not checked, because the sync issue may also occur when connect via Steam
-
-            __result = TaskHelper.RunSafely(WaitForSync(__instance, ____logger, ____netService,
-                ____syncCompletionSource, ____syncData, ____runState, ____runLobby, ____rngSet,
-                ____sharedRelicGrabBag));
-
-            return false;
-        }
-
-        private static async Task WaitForSync(CombatStateSynchronizer instance, Logger logger,
-            INetGameService netService, TaskCompletionSource? syncCompletionSource,
-            Dictionary<ulong, SerializablePlayer> syncData, RunState runState, RunLobby? runLobby,
-            SerializableRunRngSet? rngSet, SerializableRelicGrabBag? sharedRelicGrabBag)
-        {
-            logger.Debug("Waiting to receive all sync messages from all clients");
-            if (netService.Type == NetGameType.Singleplayer || instance.IsDisabled)
+            if (____syncCompletionSource == null || ____syncCompletionSource.Task.IsCompleted)
                 return;
 
-            if (syncCompletionSource == null)
-            {
-                throw new InvalidOperationException("StartSync must be called before WaitForSync!");
-            }
+            TaskHelper.RunSafely(WatchSync(__instance, ____logger, ____netService, ____syncCompletionSource));
+        }
 
+        private static async Task WatchSync(CombatStateSynchronizer instance, Logger logger,
+            INetGameService netService, TaskCompletionSource syncCompletionSource)
+        {
             var startTime = DateTime.Now;
-            var lastResendTick = DateTime.Now;
-
-            const int timeoutSeconds = 30;
-            const int resendIntervalSeconds = 5;
+            var lastResendTime = DateTime.Now;
 
             while (!syncCompletionSource.Task.IsCompleted)
             {
-                if ((DateTime.Now - startTime).TotalSeconds > timeoutSeconds)
+                await Task.Delay(100);
+
+                if (syncCompletionSource.Task.IsCompleted)
+                    return;
+
+                if ((DateTime.Now - startTime).TotalSeconds > TimeoutSeconds)
                 {
                     logger.Warn("Receive all sync messages timeout, skip waiting for all clients");
-                    break;
+                    syncCompletionSource.TrySetResult();
+                    return;
                 }
 
-                if (netService.Type == NetGameType.Host &&
-                    (DateTime.Now - lastResendTick).TotalSeconds > resendIntervalSeconds && rngSet != null &&
-                    sharedRelicGrabBag != null)
-                {
-                    logger.Debug("Resend rng sync message");
-
-                    var message = new SyncRngMessage
-                    {
-                        rng = rngSet,
-                        sharedRelicGrabBag = sharedRelicGrabBag
-                    };
-
-                    netService.SendMessage(message);
-
-                    lastResendTick = DateTime.Now;
-                }
-
-                await Task.Delay(100);
-            }
-
-            //A client only receives the host's RNG while waiting, so read it now rather than from the prefix's copy
-            var traverse = Traverse.Create(instance);
-            rngSet = traverse.Field("_rngSet").GetValue<SerializableRunRngSet?>();
-            sharedRelicGrabBag = traverse.Field("_sharedRelicGrabBag").GetValue<SerializableRelicGrabBag?>();
-
-            foreach (var syncDatum in syncData)
-            {
-                if (runLobby != null && !runLobby.PlayerIds.Contains(syncDatum.Key))
-                {
-                    logger.Debug($"Skipping sync for disconnected player {syncDatum.Key}");
+                if (netService.Type != NetGameType.Host ||
+                    (DateTime.Now - lastResendTime).TotalSeconds <= ResendIntervalSeconds)
                     continue;
-                }
 
-                var player = runState.GetPlayer(syncDatum.Key);
-                if (!LocalContext.IsMe(player))
+                var rngSet = RefRngSet(instance);
+                var sharedRelicGrabBag = RefSharedRelicGrabBag(instance);
+
+                if (rngSet == null || sharedRelicGrabBag == null)
+                    continue;
+
+                logger.Debug("Resend rng sync message");
+
+                netService.SendMessage(new SyncRngMessage
                 {
-                    player?.SyncWithSerializedPlayer(syncDatum.Value);
-                }
+                    rng = rngSet,
+                    sharedRelicGrabBag = sharedRelicGrabBag
+                });
+
+                lastResendTime = DateTime.Now;
             }
-
-            if (netService.Type != NetGameType.Host)
-            {
-                if (rngSet != null)
-                {
-                    runState.Rng.LoadFromSerializable(rngSet);
-                }
-                else if (runState.Players.Count > 1)
-                {
-                    logger.Error(
-                        "There are two or more players and we are a client, but we never received the RNG set!");
-                }
-
-                if (sharedRelicGrabBag != null)
-                {
-                    runState.SharedRelicGrabBag.LoadFromSerializable(sharedRelicGrabBag);
-                }
-                else if (runState.Players.Count > 1)
-                {
-                    logger.Error(
-                        "There are two or more players and we are a client, but we never received the shared relic grab bag!");
-                }
-            }
-
-            syncData.Clear();
-            traverse.Field("_rngSet").SetValue(null);
-            traverse.Field("_sharedRelicGrabBag").SetValue(null);
-            traverse.Field("_syncCompletionSource").SetValue(null);
         }
     }
 }

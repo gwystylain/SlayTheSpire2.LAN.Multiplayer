@@ -99,6 +99,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
         public void DeleteCurrentMultiplayerRun()
         {
             SaveStore.DeleteFile(CurrentMultiplayerRunSavePath);
+            SaveStore.DeleteFile(CurrentMultiplayerRunSavePath + ".backup");
             SaveStore.DeleteFile(CurrentMultiplayerRunPlayerNamesPath);
         }
 

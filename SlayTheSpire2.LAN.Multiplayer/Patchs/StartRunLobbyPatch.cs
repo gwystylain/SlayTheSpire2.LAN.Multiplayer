@@ -12,14 +12,16 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
     //A multiplayer lobby's ascension cap is the lowest any player has unlocked. Only the host adds players, and the
     //list it builds is what every client receives, so raising each entry here lets the host pick any level for everyone.
     //Daily runs keep their fixed ascension; singleplayer caps come from character stats and are untouched.
+    //Blitz has its own, lower ascension ladder, so each player carries a cap for each.
     [HarmonyPatch(typeof(StartRunLobby), "TryAddPlayerInFirstAvailableSlot")]
     internal class StartRunLobbyTryAddPlayerInFirstAvailableSlotPatch
     {
-        private static void Prefix(StartRunLobby __instance, ref int maxAscensionUnlocked)
+        private static void Prefix(StartRunLobby __instance, ref int maxStandardAscension, ref int maxBlitzAscension)
         {
             if (__instance.NetService.Type.IsMultiplayer() && __instance.GameMode != GameMode.Daily)
             {
-                maxAscensionUnlocked = AscensionManager.maxAscensionAllowed;
+                maxStandardAscension = AscensionManager.maxAscensionAllowed;
+                maxBlitzAscension = AscensionManager.maxAscensionAllowedBlitz;
             }
         }
     }

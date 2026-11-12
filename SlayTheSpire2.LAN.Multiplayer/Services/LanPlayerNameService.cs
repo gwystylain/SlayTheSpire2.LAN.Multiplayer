@@ -108,6 +108,16 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                 UpdateNameplateLabel(runScreenService.CustomRunScreen);
             }
 
+            if (runScreenService.BlitzScreen != null)
+            {
+                UpdateNameplateLabel(runScreenService.BlitzScreen);
+            }
+
+            if (runScreenService.DreadScreen != null)
+            {
+                UpdateNameplateLabel(runScreenService.DreadScreen);
+            }
+
             if (runScreenService.MultiplayerLoadGameScreen != null)
             {
                 UpdateNameplateLabel(runScreenService.MultiplayerLoadGameScreen);
@@ -136,7 +146,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                 if (!GodotObject.IsInstanceValid(megaLabel))
                     continue;
 
-                megaLabel.SetTextAutoSize(PlatformUtil.GetPlayerName(PlatformType.None, node.PlayerId));
+                megaLabel.SetTextAutoSize(PlatformUtil.GetPlayerNameRaw(PlatformType.None, node.PlayerId));
             }
         }
     }

@@ -1,8 +1,6 @@
 ﻿using Godot;
 using HarmonyLib;
-using MegaCrit.Sts2.Core.Assets;
 using MegaCrit.Sts2.Core.Helpers;
-using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.TreasureRoomRelic;
 using MegaCrit.Sts2.Core.Runs;
 
@@ -11,99 +9,64 @@ using MegaCrit.Sts2.Core.Runs;
 
 namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
 {
-    [HarmonyPatch(typeof(NTreasureRoomRelicCollection), "_Ready")]
-    internal class NTreasureRoomRelicCollectionReadyPatch
+    //The chest scene has one hand-placed layout per relic count (layout i holds i + 1 relics), up to six. A LAN game
+    //can have more players than that, and with no layout for the count the game shows no relics to pick. Before the
+    //game picks a layout, add a grid of holders for the count, with empty layouts for any counts in between.
+    [HarmonyPatch(typeof(NTreasureRoomRelicCollection), nameof(NTreasureRoomRelicCollection.InitializeRelics))]
+    internal class NTreasureRoomRelicCollectionInitializeRelicsPatch
     {
-        private static void Prefix(NTreasureRoomRelicCollection __instance)
+        private const int Separation = 42;
+
+        private static void Prefix(List<Control> ____holderLayouts)
         {
-            var runState = Traverse.Create(RunManager.Instance).Property("State").GetValue<RunState?>();
+            var relicCount = RunManager.Instance.TreasureRoomRelicSynchronizer.CurrentRelics?.Count ?? 0;
 
-            if (runState is { Players.Count: > 4 })
+            if (____holderLayouts.Count == 0 || relicCount <= ____holderLayouts.Count)
+                return;
+
+            var templateHolder = ____holderLayouts
+                .SelectMany(layout => layout.GetChildren().OfType<NTreasureRoomRelicHolder>())
+                .LastOrDefault();
+
+            if (templateHolder == null)
+                return;
+
+            var container = ____holderLayouts[^1].GetParent();
+
+            while (____holderLayouts.Count < relicCount - 1)
             {
-                var container = __instance.GetNode("Container");
-                var multiplayerRelicHolder = container.GetNode("MultiplayerRelicHolder4");
-
-                for (var i = 4; i < runState.Players.Count; i++)
-                {
-                    var nTreasureRoomRelicHolder = (NTreasureRoomRelicHolder)multiplayerRelicHolder.Duplicate();
-                    nTreasureRoomRelicHolder.Name = $"MultiplayerRelicHolder{i + 1}";
-                    container.AddChildSafely(nTreasureRoomRelicHolder);
-                }
+                var emptyLayout = new Control { Name = $"LanEmptyLayout{____holderLayouts.Count + 1}", Visible = false };
+                container.AddChildSafely(emptyLayout);
+                ____holderLayouts.Add(emptyLayout);
             }
-        }
 
-        private static void Postfix(NTreasureRoomRelicCollection __instance,
-            List<NTreasureRoomRelicHolder> ____multiplayerHolders)
-        {
-            if (____multiplayerHolders.Count > 4)
+            var gridLayout = new GridContainer
             {
-                var gridContainer = new GridContainer
-                    { Name = "RelicContainer", Columns = 4, CustomMinimumSize = new Vector2(0, 469) };
+                Name = $"LanGridLayout{relicCount}",
+                Columns = Math.Min((relicCount + 1) / 2, 6),
+                Visible = false
+            };
+            gridLayout.AddThemeConstantOverride("h_separation", Separation);
+            gridLayout.AddThemeConstantOverride("v_separation", Separation);
 
-                gridContainer.AddThemeConstantOverride("h_separation", 42);
-                gridContainer.AddThemeConstantOverride("v_separation", 42);
-                gridContainer.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopWide);
+            //Holders are placed by hand in the scene, so they may have no minimum size for the grid to lay out by
+            var holderSize = templateHolder.CustomMinimumSize.Max(templateHolder.Size);
 
-                var viewport = new Control { Name = "Viewport" };
-                viewport.AddChildSafely(gridContainer);
-                viewport.SetAnchorsPreset(Control.LayoutPreset.TopWide);
-                viewport.OffsetLeft = 110;
-                viewport.OffsetTop = 110;
-                viewport.OffsetRight = -120;
-                viewport.OffsetBottom = 580;
-
-                var mask = new TextureRect { Name = "Mask", ClipContents = true };
-                mask.AddChildSafely(viewport);
-                mask.SetAnchorsPreset(Control.LayoutPreset.CenterTop);
-                mask.OffsetLeft = -450;
-                mask.OffsetTop = 250;
-                mask.OffsetRight = 450;
-                mask.OffsetBottom = 830;
-
-                var scrollbar = PreloadManager.Cache.GetScene(SceneHelper.GetScenePath("ui/scrollbar"))
-                    .Instantiate<NScrollbar>();
-                scrollbar.AnchorLeft = 0.794f;
-                scrollbar.AnchorTop = 0.187f;
-                scrollbar.AnchorRight = 0.818f;
-                scrollbar.AnchorBottom = 0.947f;
-                scrollbar.OffsetLeft = -200;
-                scrollbar.OffsetTop = 158;
-                scrollbar.OffsetRight = -199;
-                scrollbar.OffsetBottom = -163;
-
-                var scrollContainer = new NScrollableContainer { Name = "ScrollableContainer" };
-                scrollContainer.AddChildSafely(mask);
-                scrollContainer.AddChildSafely(scrollbar);
-
-                scrollContainer.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-                scrollContainer.OffsetLeft = -510;
-                scrollContainer.OffsetTop = -250;
-                scrollContainer.OffsetRight = 510;
-                scrollContainer.OffsetBottom = 250;
-
-                var container = __instance.GetNode("Container");
-                container.AddChildSafely(scrollContainer);
-
-                scrollContainer.SetContent(gridContainer, 20, 30);
-
-                //The animation will change MultiplayerHolder position. Manually fix the position.
-
-                var position = new Vector2(0, 110);
-
-                for (var i = 0; i < ____multiplayerHolders.Count; i++)
-                {
-                    if (i > 0)
-                    {
-                        position = i % 4 == 0
-                            ? new Vector2(0, position.Y + 178)
-                            : new Vector2(position.X + 178, position.Y);
-                    }
-
-                    var multiplayerHolder = ____multiplayerHolders[i];
-                    multiplayerHolder.Position = position;
-                    multiplayerHolder.Reparent(gridContainer, false);
-                }
+            for (var i = 0; i < relicCount; i++)
+            {
+                var holder = (NTreasureRoomRelicHolder)templateHolder.Duplicate();
+                holder.Name = $"LanRelicHolder{i + 1}";
+                holder.Visible = true;
+                holder.CustomMinimumSize = holderSize;
+                gridLayout.AddChildSafely(holder);
             }
+
+            container.AddChildSafely(gridLayout);
+            gridLayout.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.Center, Control.LayoutPresetMode.Minsize);
+            gridLayout.GrowHorizontal = Control.GrowDirection.Both;
+            gridLayout.GrowVertical = Control.GrowDirection.Both;
+
+            ____holderLayouts.Add(gridLayout);
         }
     }
 }

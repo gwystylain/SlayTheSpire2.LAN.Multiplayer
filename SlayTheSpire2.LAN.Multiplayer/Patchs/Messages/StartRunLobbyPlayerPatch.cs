@@ -19,7 +19,9 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Messages
             PacketHelper.WriteVarInt(writer, (uint)__instance.slotId);
             writer.WriteModel(__instance.character);
             writer.Write(__instance.unlockState);
-            writer.WriteInt(__instance.maxMultiplayerAscensionUnlocked);
+            writer.WriteInt(__instance.maxStandardAscension, 8);
+            writer.WriteInt(__instance.maxBlitzAscension, 8);
+            writer.WriteBool(__instance.isRotatingDread);
             writer.WriteBool(__instance.isModded);
             writer.WriteBool(__instance.isReady);
 
@@ -36,7 +38,9 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Messages
             __instance.slotId = (int)PacketHelper.ReadVarInt(reader);
             __instance.character = reader.ReadModel<CharacterModel>();
             __instance.unlockState = reader.Read<SerializableUnlockState>();
-            __instance.maxMultiplayerAscensionUnlocked = reader.ReadInt();
+            __instance.maxStandardAscension = reader.ReadInt(8);
+            __instance.maxBlitzAscension = reader.ReadInt(8);
+            __instance.isRotatingDread = reader.ReadBool();
             __instance.isModded = reader.ReadBool();
             __instance.isReady = reader.ReadBool();
 
