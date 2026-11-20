@@ -4,6 +4,7 @@ using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Localization;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
@@ -23,18 +24,30 @@ using SlayTheSpire2.LAN.Multiplayer.Services;
 namespace SlayTheSpire2.LAN.Multiplayer.Patchs
 {
     //A LAN host's pause menu gets a Restart Encounter button above Save and Quit. It's added before the menu connects
-    //its buttons' signals, since a copy made afterwards would also save and quit.
+    //its buttons' signals, and copied without signal connections either way, so it never also saves and quits.
     [HarmonyPatch(typeof(NPauseMenu), "_Ready")]
     internal class NPauseMenuReadyPatch
     {
         public const string ButtonName = "RestartEncounter";
 
+        private const int DuplicateWithoutSignals = (int)(Node.DuplicateFlags.Groups | Node.DuplicateFlags.Scripts |
+                                                          Node.DuplicateFlags.UseInstantiation);
+
         private static void Prefix(NPauseMenu __instance)
         {
-            var buttonContainer = __instance.GetNode<Control>("%ButtonContainer");
-            var saveAndQuitButton = buttonContainer.GetNode<NPauseMenuButton>("SaveAndQuit");
+            AddButton(__instance.GetNode<Control>("%ButtonContainer"));
+        }
 
-            var restartEncounterButton = (NPauseMenuButton)saveAndQuitButton.Duplicate();
+        internal static NPauseMenuButton? AddButton(Control buttonContainer)
+        {
+            var saveAndQuitButton = buttonContainer.GetNodeOrNull<NPauseMenuButton>("SaveAndQuit");
+            if (saveAndQuitButton == null)
+            {
+                Log.Error("[LAN] The pause menu has no SaveAndQuit button to copy, so there's no Restart Encounter");
+                return null;
+            }
+
+            var restartEncounterButton = (NPauseMenuButton)saveAndQuitButton.Duplicate(DuplicateWithoutSignals);
             restartEncounterButton.Name = ButtonName;
             buttonContainer.AddChildSafely(restartEncounterButton);
             buttonContainer.MoveChild(restartEncounterButton, saveAndQuitButton.GetIndex());
@@ -43,6 +56,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
                 new LocString("gameplay_ui", "SlayTheSpire2.LAN.Multiplayer.RESTART_ENCOUNTER").GetFormattedText());
             restartEncounterButton.Connect(NClickableControl.SignalName.Released,
                 Callable.From<NButton>(_ => TaskHelper.RunSafely(ConfirmRestart())));
+
+            return restartEncounterButton;
         }
 
         private static async Task ConfirmRestart()
@@ -64,25 +79,46 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
     }
 
     //Shows the button to LAN hosts, usable anywhere in a run that isn't over, and re-links controller focus through the
-    //visible buttons.
-    [HarmonyPatch(typeof(NPauseMenu), nameof(NPauseMenu.Initialize))]
-    internal class NPauseMenuInitializePatch
+    //visible buttons. This runs both when the menu opens (OnSubmenuOpened, which every way of opening it goes through)
+    //and after Initialize (which supplies the run state), and logs each opening, so a missing button can be traced.
+    internal static class RestartEncounterButton
     {
-        private static void Postfix(Control ____buttonContainer, IRunState runState)
+        internal static void Refresh(Control buttonContainer, IRunState? runState, bool log)
         {
-            var restartEncounterButton = ____buttonContainer.GetNode<NPauseMenuButton>(NPauseMenuReadyPatch.ButtonName);
-            restartEncounterButton.Visible = RunManager.Instance.NetService is
-                { Type: NetGameType.Host, Platform: PlatformType.None };
-            if (!runState.IsGameOver)
+            var restartEncounterButton =
+                buttonContainer.GetNodeOrNull<NPauseMenuButton>(NPauseMenuReadyPatch.ButtonName);
+            if (restartEncounterButton == null)
             {
-                restartEncounterButton.Enable();
-            }
-            else
-            {
-                restartEncounterButton.Disable();
+                Log.Warn("[LAN] The pause menu had no Restart Encounter button, adding it now");
+                restartEncounterButton = NPauseMenuReadyPatch.AddButton(buttonContainer);
+                if (restartEncounterButton == null)
+                    return;
             }
 
-            var buttons = ____buttonContainer.GetChildren().OfType<NPauseMenuButton>().Where(b => b.Visible).ToList();
+            var netService = RunManager.Instance.NetService;
+            var isLanHost = netService is { Type: NetGameType.Host, Platform: PlatformType.None };
+            restartEncounterButton.Visible = isLanHost;
+
+            if (runState != null)
+            {
+                if (!runState.IsGameOver)
+                {
+                    restartEncounterButton.Enable();
+                }
+                else
+                {
+                    restartEncounterButton.Disable();
+                }
+            }
+
+            if (log)
+            {
+                Log.Info($"[LAN] Pause menu opened as {netService?.Type.ToString() ?? "no net service"} on " +
+                         $"{netService?.Platform.ToString() ?? "no platform"}: Restart Encounter " +
+                         (isLanHost ? "shown" : "hidden, it's for LAN hosts only"));
+            }
+
+            var buttons = buttonContainer.GetChildren().OfType<NPauseMenuButton>().Where(b => b.Visible).ToList();
             for (var i = 0; i < buttons.Count; i++)
             {
                 buttons[i].FocusNeighborLeft = buttons[i].GetPath();
@@ -90,6 +126,24 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
                 buttons[i].FocusNeighborTop = buttons[(i + buttons.Count - 1) % buttons.Count].GetPath();
                 buttons[i].FocusNeighborBottom = buttons[(i + 1) % buttons.Count].GetPath();
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(NPauseMenu), nameof(NPauseMenu.OnSubmenuOpened))]
+    internal class NPauseMenuOnSubmenuOpenedPatch
+    {
+        private static void Postfix(Control ____buttonContainer, IRunState? ____runState)
+        {
+            RestartEncounterButton.Refresh(____buttonContainer, ____runState, log: true);
+        }
+    }
+
+    [HarmonyPatch(typeof(NPauseMenu), nameof(NPauseMenu.Initialize))]
+    internal class NPauseMenuInitializePatch
+    {
+        private static void Postfix(Control ____buttonContainer, IRunState runState)
+        {
+            RestartEncounterButton.Refresh(____buttonContainer, runState, log: false);
         }
     }
 
