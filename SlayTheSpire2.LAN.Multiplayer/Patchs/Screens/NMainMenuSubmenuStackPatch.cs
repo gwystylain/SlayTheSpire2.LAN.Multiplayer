@@ -41,6 +41,25 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
                 }
             }
 
+            if (type == typeof(LanSaveListSubmenu))
+            {
+                var saveListSubmenu = __instance.GetNodeOrNull<LanSaveListSubmenu>("LANSaveListSubmenu");
+                if (saveListSubmenu == null)
+                {
+                    saveListSubmenu = LanSaveListSubmenu.Create();
+                    if (saveListSubmenu == null)
+                        return true;
+
+                    saveListSubmenu.Name = "LANSaveListSubmenu";
+                    saveListSubmenu.Visible = false;
+                    __instance.AddChildSafely(saveListSubmenu);
+                }
+
+                __result = saveListSubmenu;
+
+                return false;
+            }
+
             return true;
         }
     }

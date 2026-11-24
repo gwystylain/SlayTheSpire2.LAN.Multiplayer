@@ -13,7 +13,6 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
 
         public NSubmenuButton? LanHostButton;
         public NSubmenuButton? LanLoadButton;
-        public NSubmenuButton? LanAbandonButton;
 
         private LanMultiplayerSubmenuButtonService()
         {

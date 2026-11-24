@@ -51,6 +51,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
                 Log.Info($"HostGame open on port:{port}");
                 if (!netErrorInfo.HasValue)
                 {
+                    LanRunSaveManagerService.Instance.StartNewSlot();
+
                     if (isCustom)
                     {
                         var customRunScreen = stack.GetSubmenuType<NCustomRunScreen>();
@@ -165,16 +167,16 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
             }
         }
 
-        public static void StartLoad(NSubmenuButton nSubmenuButton, Control loadingOverlay, NSubmenuStack stack,
-            ushort port, int maxPlayers)
+        // Hosts the LAN save in this slot. Returns false when the save can't be loaded, after telling the player.
+        public static bool StartLoad(string slot, Control loadingOverlay, NSubmenuStack stack, ushort port,
+            int maxPlayers)
         {
             var readSaveResult =
-                LanRunSaveManagerService.Instance.LoadAndCanonicalizeMultiplayerRunSave(
+                LanRunSaveManagerService.Instance.LoadAndCanonicalizeMultiplayerRunSave(slot,
                     PlatformUtil.GetLocalPlayerId(PlatformType.None));
             if (!readSaveResult.Success || readSaveResult.SaveData == null)
             {
-                Log.Warn($"LAN run save could not be loaded (status={readSaveResult.Status}), disabling button");
-                nSubmenuButton.Disable();
+                Log.Warn($"LAN run save {slot} could not be loaded (status={readSaveResult.Status})");
                 var modalToCreate = NErrorPopup.CreateForRunSave(readSaveResult.Status);
                 if (modalToCreate != null)
                 {
@@ -182,17 +184,20 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
                 }
 
                 NModalContainer.Instance?.ShowBackstop();
+                return false;
             }
-            else
-            {
-                StartHost(readSaveResult.SaveData, loadingOverlay, stack, port, maxPlayers);
-            }
+
+            LanRunSaveManagerService.Instance.UseSlot(slot);
+            StartHost(readSaveResult.SaveData, loadingOverlay, stack, port, maxPlayers);
+            return true;
         }
 
-        public static async Task TryAbandonMultiplayerRun(NMultiplayerSubmenu instance)
+        // Asks, then abandons the LAN run in this slot the way the game abandons its own: the run goes into the run
+        // history as abandoned (and a daily run posts its score), then the save is deleted. Returns whether it was.
+        public static async Task<bool> TryAbandonLanRun(string slot)
         {
-            var header = new LocString("main_menu_ui", "ABANDON_RUN_CONFIRMATION.header");
-            var body = new LocString("main_menu_ui", "ABANDON_RUN_CONFIRMATION.body");
+            var header = new LocString("main_menu_ui", "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.header");
+            var body = new LocString("main_menu_ui", "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.body");
             var yesButton = new LocString("main_menu_ui", "GENERIC_POPUP.confirm");
             var noButton = new LocString("main_menu_ui", "GENERIC_POPUP.cancel");
             var nGenericPopup = NGenericPopup.Create();
@@ -202,10 +207,11 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
             }
 
             if (nGenericPopup == null || !await nGenericPopup.WaitForConfirmation(body, header, noButton, yesButton))
-                return;
+                return false;
 
             var localPlayerId = PlatformUtil.GetLocalPlayerId(PlatformType.None);
-            var readSaveResult = LanRunSaveManagerService.Instance.LoadAndCanonicalizeMultiplayerRunSave(localPlayerId);
+            var readSaveResult =
+                LanRunSaveManagerService.Instance.LoadAndCanonicalizeMultiplayerRunSave(slot, localPlayerId);
             if (readSaveResult is { Success: true, SaveData: not null })
             {
                 try
@@ -229,10 +235,15 @@ namespace SlayTheSpire2.LAN.Multiplayer.Helpers
             else
             {
                 Log.Error(
-                    $"ERROR: Failed to load multiplayer run save: status={readSaveResult.Status}. Deleting current run...");
+                    $"ERROR: Failed to load LAN run save {slot}: status={readSaveResult.Status}. Deleting it...");
             }
 
-            LanRunSaveManagerService.Instance.DeleteCurrentMultiplayerRun();
+            LanRunSaveManagerService.Instance.DeleteSlot(slot);
+            return true;
+        }
+
+        public static void RefreshButtons(NMultiplayerSubmenu instance)
+        {
             UpdateButtons(instance);
         }
     }

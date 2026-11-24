@@ -2,5 +2,11 @@
     "SlayTheSpire2.LAN.Multiplayer.COPIED": "コピーしました",
     "SlayTheSpire2.LAN.Multiplayer.IP_ADDRESS_TITLE": "IPアドレス:",
     "SlayTheSpire2.LAN.Multiplayer.LOCAL_IP_ADDRESS_TITLE": "ローカルIPアドレス:",
-    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPV6アドレス:"
+    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPV6アドレス:",
+    "SlayTheSpire2.LAN.Multiplayer.SAVES_TITLE": "LANセーブデータ",
+    "SlayTheSpire2.LAN.Multiplayer.NO_SAVES": "保存されたLANランはありません。",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE": "削除",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.header": "このランを削除しますか？",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.body": "ラン履歴には放棄として記録され、続きから遊ぶことはできなくなります。",
+    "SlayTheSpire2.LAN.Multiplayer.LAN_LOAD_DESCRIPTION": "続きから遊ぶLANランを選ぶか、不要なものを削除します。そのランに参加していたプレイヤーのみ参加できます。"
 }

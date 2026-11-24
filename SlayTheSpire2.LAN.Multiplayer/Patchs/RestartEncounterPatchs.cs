@@ -23,7 +23,7 @@ using SlayTheSpire2.LAN.Multiplayer.Services;
 
 namespace SlayTheSpire2.LAN.Multiplayer.Patchs
 {
-    //A LAN host's pause menu gets a Restart Encounter button above Save and Quit. It's added before the menu connects
+    //A LAN or Steam host's pause menu gets a Restart Encounter button above Save and Quit. It's added before the menu connects
     //its buttons' signals, and copied without signal connections either way, so it never also saves and quits.
     [HarmonyPatch(typeof(NPauseMenu), "_Ready")]
     internal class NPauseMenuReadyPatch
@@ -78,7 +78,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
         }
     }
 
-    //Shows the button to LAN hosts, usable anywhere in a run that isn't over, and re-links controller focus through the
+    //Shows the button to hosts of LAN and Steam games, usable anywhere in a run that isn't over, and re-links controller focus through the
     //visible buttons. This runs both when the menu opens (OnSubmenuOpened, which every way of opening it goes through)
     //and after Initialize (which supplies the run state), and logs each opening, so a missing button can be traced.
     internal static class RestartEncounterButton
@@ -96,8 +96,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
             }
 
             var netService = RunManager.Instance.NetService;
-            var isLanHost = netService is { Type: NetGameType.Host, Platform: PlatformType.None };
-            restartEncounterButton.Visible = isLanHost;
+            var isHost = netService is { Type: NetGameType.Host } && LanRestartService.CanRestart(netService);
+            restartEncounterButton.Visible = isHost;
 
             if (runState != null)
             {
@@ -115,7 +115,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
             {
                 Log.Info($"[LAN] Pause menu opened as {netService?.Type.ToString() ?? "no net service"} on " +
                          $"{netService?.Platform.ToString() ?? "no platform"}: Restart Encounter " +
-                         (isLanHost ? "shown" : "hidden, it's for LAN hosts only"));
+                         (isHost ? "shown" : "hidden, it's for hosts of LAN and Steam games only"));
             }
 
             var buttons = buttonContainer.GetChildren().OfType<NPauseMenuButton>().Where(b => b.Visible).ToList();
@@ -153,7 +153,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
     {
         private static void Postfix(INetGameService netService)
         {
-            if (netService is { Type: NetGameType.Client, Platform: PlatformType.None })
+            if (netService is { Type: NetGameType.Client } && LanRestartService.CanRestart(netService))
             {
                 netService.RegisterMessageHandler<LanRestartEncounterMessage>(LanRestartService.Instance
                     .HandleLanRestartEncounterMessage);
@@ -166,7 +166,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
     {
         private static void Prefix(INetGameService ____netService)
         {
-            if (____netService is { Type: NetGameType.Client, Platform: PlatformType.None })
+            if (____netService is { Type: NetGameType.Client } && LanRestartService.CanRestart(____netService))
             {
                 ____netService.UnregisterMessageHandler<LanRestartEncounterMessage>(LanRestartService.Instance
                     .HandleLanRestartEncounterMessage);

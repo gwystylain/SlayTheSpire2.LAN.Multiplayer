@@ -2,5 +2,11 @@
     "SlayTheSpire2.LAN.Multiplayer.COPIED": "Kopiert",
     "SlayTheSpire2.LAN.Multiplayer.IP_ADDRESS_TITLE": "IP Adresse:",
     "SlayTheSpire2.LAN.Multiplayer.LOCAL_IP_ADDRESS_TITLE": "Lokale IP Adresse:",
-    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPV6 Adresse:"
+    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPV6 Adresse:",
+    "SlayTheSpire2.LAN.Multiplayer.SAVES_TITLE": "LAN-Spielstände",
+    "SlayTheSpire2.LAN.Multiplayer.NO_SAVES": "Keine gespeicherten LAN-Durchläufe.",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE": "Löschen",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.header": "Diesen Durchlauf löschen?",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.body": "Er wird in deinem Verlauf als abgebrochen eingetragen und kann nicht fortgesetzt werden.",
+    "SlayTheSpire2.LAN.Multiplayer.LAN_LOAD_DESCRIPTION": "Wähle einen gespeicherten LAN-Durchlauf zum Fortsetzen oder lösche einen. Nur Spieler, die in diesem Durchlauf waren, können beitreten."
 }

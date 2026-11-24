@@ -97,6 +97,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Components
             }
 
             LanRestartService.Instance.JoinRestartedGame(games, _join);
+            LanRestartService.Instance.JoinRestartedSteamGame(_screen);
         }
 
         public override void _ExitTree()

@@ -2,5 +2,11 @@
     "SlayTheSpire2.LAN.Multiplayer.COPIED": "Copied",
     "SlayTheSpire2.LAN.Multiplayer.IP_ADDRESS_TITLE": "IP Address:",
     "SlayTheSpire2.LAN.Multiplayer.LOCAL_IP_ADDRESS_TITLE": "Local IP Address:",
-    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPV6 Address:"
+    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPV6 Address:",
+    "SlayTheSpire2.LAN.Multiplayer.SAVES_TITLE": "LAN Saves",
+    "SlayTheSpire2.LAN.Multiplayer.NO_SAVES": "No saved LAN runs.",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE": "Delete",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.header": "Delete This Run?",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.body": "It goes into your run history as abandoned and can't be continued.",
+    "SlayTheSpire2.LAN.Multiplayer.LAN_LOAD_DESCRIPTION": "Choose a saved LAN run to continue, or delete one. Only players who were in that run can join."
 }

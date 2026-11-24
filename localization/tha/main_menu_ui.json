@@ -2,5 +2,11 @@
     "SlayTheSpire2.LAN.Multiplayer.COPIED": "คัดลอกแล้ว",
     "SlayTheSpire2.LAN.Multiplayer.IP_ADDRESS_TITLE": "ที่อยู่ IP:",
     "SlayTheSpire2.LAN.Multiplayer.LOCAL_IP_ADDRESS_TITLE": "ที่อยู่ IP ภายใน:",
-    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "ที่อยู่ IPV6:"
+    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "ที่อยู่ IPV6:",
+    "SlayTheSpire2.LAN.Multiplayer.SAVES_TITLE": "เซฟ LAN",
+    "SlayTheSpire2.LAN.Multiplayer.NO_SAVES": "ไม่มีการเล่น LAN ที่บันทึกไว้",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE": "ลบ",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.header": "ลบการเล่นนี้หรือไม่?",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.body": "การเล่นนี้จะถูกบันทึกในประวัติว่ายกเลิก และจะเล่นต่อไม่ได้",
+    "SlayTheSpire2.LAN.Multiplayer.LAN_LOAD_DESCRIPTION": "เลือกการเล่น LAN ที่บันทึกไว้เพื่อเล่นต่อ หรือลบทิ้ง เฉพาะผู้เล่นที่อยู่ในการเล่นนั้นเท่านั้นที่เข้าร่วมได้"
 }

@@ -2,5 +2,11 @@
     "SlayTheSpire2.LAN.Multiplayer.COPIED": "Скопировано",
     "SlayTheSpire2.LAN.Multiplayer.IP_ADDRESS_TITLE": "IP адрес:",
     "SlayTheSpire2.LAN.Multiplayer.LOCAL_IP_ADDRESS_TITLE": "Локальный IP адрес:",
-    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPV6 адрес:"
+    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPV6 адрес:",
+    "SlayTheSpire2.LAN.Multiplayer.SAVES_TITLE": "Сохранения LAN",
+    "SlayTheSpire2.LAN.Multiplayer.NO_SAVES": "Нет сохранённых забегов по LAN.",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE": "Удалить",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.header": "Удалить этот забег?",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.body": "Он попадёт в историю забегов как брошенный, и продолжить его будет нельзя.",
+    "SlayTheSpire2.LAN.Multiplayer.LAN_LOAD_DESCRIPTION": "Выберите сохранённый забег по LAN, чтобы продолжить его, или удалите один из них. Присоединиться могут только игроки, участвовавшие в этом забеге."
 }

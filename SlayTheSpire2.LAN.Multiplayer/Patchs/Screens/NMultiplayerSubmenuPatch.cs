@@ -2,6 +2,7 @@
 using HarmonyLib;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.MainMenu;
 using MegaCrit.Sts2.Core.Runs;
@@ -15,6 +16,8 @@ using SlayTheSpire2.LAN.Multiplayer.Services;
 
 namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
 {
+    //The multiplayer menu gets LAN Host, which starts a new LAN run, and LAN Load, which opens the list of saved LAN
+    //runs to continue or delete. Several LAN runs can be saved at once, so hosting a new one is always offered.
     [HarmonyPatch(typeof(NMultiplayerSubmenu), "_Ready")]
     internal class NMultiplayerSubmenuReadyPatch
     {
@@ -70,41 +73,16 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
 
             var lanLoadButtonTitle = Traverse.Create(lanLoadButton).Field("_title").GetValue<MegaLabel>();
             lanLoadButtonTitle.SetTextAutoSize($"LAN {lanLoadButtonTitle.Text}");
+            NMultiplayerSubmenuUpdateButtonsPatch.DescribeLoadButton(lanLoadButton);
 
             lanLoadButton.Connect(NClickableControl.SignalName.Released,
                 Callable.From<NButton>(_ =>
                 {
-                    var traverse = Traverse.Create(__instance);
-
-                    var settingsModel = SettingsService.Instance.SettingsModel;
-
-                    LanHostHelper.StartLoad(lanLoadButton, traverse.Field("_loadingOverlay").GetValue<Control>(),
-                        traverse.Field("_stack").GetValue<NSubmenuStack>(),
-                        settingsModel.HostPort, settingsModel.HostMaxPlayers);
+                    Traverse.Create(__instance).Field("_stack").GetValue<NSubmenuStack>()
+                        .PushSubmenuType<LanSaveListSubmenu>();
                 }));
 
             LanMultiplayerSubmenuButtonService.Instance.LanLoadButton = lanLoadButton;
-
-            var lanAbandonButton = (NSubmenuButton)buttonContainerNode.GetNode("AbandonButton").Duplicate();
-
-            NSubmenuButtonDuplicateMaterial(lanAbandonButton);
-
-            buttonContainerNode.AddChildSafely(lanAbandonButton);
-            buttonContainerNode.MoveChild(lanAbandonButton, 3);
-
-            lanAbandonButton.SetLocalization("MP_ABANDON");
-            lanAbandonButton.SetIcon("abandon");
-
-            var lanAbandonButtonTitle = Traverse.Create(lanAbandonButton).Field("_title").GetValue<MegaLabel>();
-            lanAbandonButtonTitle.SetTextAutoSize($"LAN {lanAbandonButtonTitle.Text}");
-
-            lanAbandonButton.Connect(NClickableControl.SignalName.Released,
-                Callable.From<NButton>(_ =>
-                {
-                    TaskHelper.RunSafely(LanHostHelper.TryAbandonMultiplayerRun(__instance));
-                }));
-
-            LanMultiplayerSubmenuButtonService.Instance.LanAbandonButton = lanAbandonButton;
         }
 
         private static void NSubmenuButtonDuplicateMaterial(NSubmenuButton nSubmenuButton)
@@ -123,21 +101,33 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs.Screens
 
             if (lanMultiplayerSubmenuButtonService.LanHostButton != null)
             {
-                lanMultiplayerSubmenuButtonService.LanHostButton.Visible =
-                    !LanRunSaveManagerService.Instance.HasMultiplayerRunSave;
+                lanMultiplayerSubmenuButtonService.LanHostButton.Visible = true;
             }
 
             if (lanMultiplayerSubmenuButtonService.LanLoadButton != null)
             {
                 lanMultiplayerSubmenuButtonService.LanLoadButton.Visible =
                     LanRunSaveManagerService.Instance.HasMultiplayerRunSave;
+                DescribeLoadButton(lanMultiplayerSubmenuButtonService.LanLoadButton);
             }
+        }
 
-            if (lanMultiplayerSubmenuButtonService.LanAbandonButton != null)
-            {
-                lanMultiplayerSubmenuButtonService.LanAbandonButton.Visible =
-                    LanRunSaveManagerService.Instance.HasMultiplayerRunSave;
-            }
+        //The game's description says it continues your last run; the LAN one opens a list of them.
+        internal static void DescribeLoadButton(NSubmenuButton lanLoadButton)
+        {
+            Traverse.Create(lanLoadButton).Field("_description").GetValue<MegaRichTextLabel>().Text =
+                new LocString("main_menu_ui", "SlayTheSpire2.LAN.Multiplayer.LAN_LOAD_DESCRIPTION")
+                    .GetFormattedText();
+        }
+    }
+
+    //Coming back from the save list (where the last save may have been deleted) or from a finished run.
+    [HarmonyPatch(typeof(NMultiplayerSubmenu), "OnSubmenuShown")]
+    internal class NMultiplayerSubmenuOnSubmenuShownPatch
+    {
+        private static void Postfix(NMultiplayerSubmenu __instance)
+        {
+            LanHostHelper.RefreshButtons(__instance);
         }
     }
 }

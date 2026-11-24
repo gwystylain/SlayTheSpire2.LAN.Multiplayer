@@ -2,5 +2,11 @@
     "SlayTheSpire2.LAN.Multiplayer.COPIED": "Copiato",
     "SlayTheSpire2.LAN.Multiplayer.IP_ADDRESS_TITLE": "Indirizzo IP:",
     "SlayTheSpire2.LAN.Multiplayer.LOCAL_IP_ADDRESS_TITLE": "Indirizzo IP locale:",
-    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "Indirizzo IPV6:"
+    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "Indirizzo IPV6:",
+    "SlayTheSpire2.LAN.Multiplayer.SAVES_TITLE": "Salvataggi LAN",
+    "SlayTheSpire2.LAN.Multiplayer.NO_SAVES": "Nessuna partita LAN salvata.",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE": "Elimina",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.header": "Eliminare questa partita?",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.body": "Verrà registrata nella cronologia come abbandonata e non potrà essere ripresa.",
+    "SlayTheSpire2.LAN.Multiplayer.LAN_LOAD_DESCRIPTION": "Scegli una partita LAN salvata da continuare, oppure eliminane una. Possono unirsi solo i giocatori che erano in quella partita."
 }

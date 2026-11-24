@@ -2,5 +2,11 @@
     "SlayTheSpire2.LAN.Multiplayer.COPIED": "已复制",
     "SlayTheSpire2.LAN.Multiplayer.IP_ADDRESS_TITLE": "IP地址:",
     "SlayTheSpire2.LAN.Multiplayer.LOCAL_IP_ADDRESS_TITLE": "本地IP地址:",
-    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPV6地址:"
+    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPV6地址:",
+    "SlayTheSpire2.LAN.Multiplayer.SAVES_TITLE": "LAN存档",
+    "SlayTheSpire2.LAN.Multiplayer.NO_SAVES": "没有已保存的LAN对局。",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE": "删除",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.header": "删除这局游戏？",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.body": "它将以放弃的形式记入对局历史，且无法继续。",
+    "SlayTheSpire2.LAN.Multiplayer.LAN_LOAD_DESCRIPTION": "选择一个已保存的LAN对局继续游戏，或删除一个。只有参与过该对局的玩家才能加入。"
 }

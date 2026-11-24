@@ -31,38 +31,9 @@ namespace SlayTheSpire2.LAN.Multiplayer.Components
             var lanMultiplayerHostSubmenu = new LanMultiplayerHostSubmenu();
 
             lanMultiplayerHostSubmenu.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-
-            //The scene's nodes belong to its root, and the game finds them by unique name (%StandardButton), which
-            //only resolves through the owner. Take over the nodes and their ownership so those lookups work here.
-            var ownedNodes = new List<Node>();
-            CollectOwnedNodes(multiplayerHostSubmenu, multiplayerHostSubmenu, ownedNodes);
-
-            foreach (var child in multiplayerHostSubmenu.GetChildren())
-            {
-                child.Reparent(lanMultiplayerHostSubmenu, false);
-            }
-
-            foreach (var node in ownedNodes)
-            {
-                node.Owner = lanMultiplayerHostSubmenu;
-            }
-
-            multiplayerHostSubmenu.QueueFreeSafely();
+            SceneAdoptionHelper.Adopt(multiplayerHostSubmenu, lanMultiplayerHostSubmenu);
 
             return lanMultiplayerHostSubmenu;
-        }
-
-        private static void CollectOwnedNodes(Node node, Node owner, List<Node> ownedNodes)
-        {
-            foreach (var child in node.GetChildren())
-            {
-                if (child.Owner == owner)
-                {
-                    ownedNodes.Add(child);
-                }
-
-                CollectOwnedNodes(child, owner, ownedNodes);
-            }
         }
 
         public override void _Ready()

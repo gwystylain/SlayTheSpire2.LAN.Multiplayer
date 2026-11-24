@@ -19,13 +19,18 @@ Everyone in a run needs the same version. Joining with a different one fails and
 - **Finding games.** Games hosted on your network appear at the top of the Join screen's lobby list, tagged
   LAN, alongside Steam friends' lobbies; pick one to join it. Hosts answer on UDP port 33770, so a firewall
   that blocks it hides the game from the list, though typing the host's address still works.
-- **Restarting an encounter.** During a run, the host's pause menu has Restart Encounter. It saves and quits,
-  hosts that save again and brings everyone back in, so the current room (a fight, event, shop or rest site)
-  starts over from when it was entered.
+- **Restarting an encounter.** During a run, the host's pause menu has Restart Encounter, in LAN games and in
+  games joined through a Steam invite. It saves and quits, hosts that save again and brings everyone back in, so
+  the current room (a fight, event, shop or rest site) starts over from when it was entered.
+- **Saved LAN runs.** Each LAN run has its own save, so several can be kept at once and LAN Host always starts
+  a new one. LAN Host from Save lists them, newest first: pick one to host it, or delete it (it goes into the
+  run history as abandoned, as the game's own Abandon does).
 - **Sleep and dropped connections.** If the connection drops mid-game, for example because a Steam Deck went
   to sleep, nobody is sent back to the menu. The client keeps reconnecting to the host and the run picks up
-  where it left off, with a banner on screen in the meantime. This only works while the host keeps the same
-  IP address, so a DHCP reservation for the host helps. Quitting from the menu still ends the game as before.
+  where it left off, with a banner on screen in the meantime. This works in LAN games and in games joined
+  through a Steam invite. A LAN game only resumes while the host keeps the same IP address, so a DHCP
+  reservation for the host helps; a Steam game reconnects by Steam ID. Quitting from the menu still ends the
+  game as before.
 - **Unlocks.** Everything is unlocked, and every epoch on the timeline is marked revealed in the modded
   profile's progress save, so the main menu never waits for you to click through the timeline. The
   unmodded profile is untouched.

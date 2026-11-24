@@ -13,11 +13,25 @@ using SlayTheSpire2.LAN.Multiplayer.Models;
 
 namespace SlayTheSpire2.LAN.Multiplayer.Services
 {
+    // LAN runs are saved apart from the game's own multiplayer save, one file per run in the profile's lan_runs folder,
+    // each with its players' names beside it. The run being played (hosted new, or loaded from a save) is the current
+    // slot, which the host's saves go to and which ending the run deletes.
     internal class LanRunSaveManagerService
     {
         private static readonly Lazy<LanRunSaveManagerService> Lazy = new(() => new LanRunSaveManagerService());
 
         public static LanRunSaveManagerService Instance => Lazy.Value;
+
+        private const string SavesFolder = "lan_runs";
+
+        private const string SaveExtension = ".save";
+
+        private const string NamesExtension = ".names.json";
+
+        // Before 1.11.0 there was only ever one LAN save, in these files.
+        private const string LegacySaveFile = "current_lan_run_mp.save";
+
+        private const string LegacyNamesFile = "current_lan_run_mp_player_names.json";
 
         private SaveManager ProfileIdProvider => SaveManager.Instance;
 
@@ -26,21 +40,86 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
         private MigrationManager MigrationManager => Traverse.Create(ProfileIdProvider).Field("_migrationManager")
             .GetValue<MigrationManager>();
 
-        public string CurrentMultiplayerRunSavePath =>
-            RunSaveManager.GetRunSavePath(ProfileIdProvider.CurrentProfileId, "current_lan_run_mp.save");
+        private string SavesDir => RunSaveManager.GetRunSavePath(ProfileIdProvider.CurrentProfileId, SavesFolder);
 
-        public string CurrentMultiplayerRunPlayerNamesPath =>
-            RunSaveManager.GetRunSavePath(ProfileIdProvider.CurrentProfileId, "current_lan_run_mp_player_names.json");
+        public string? CurrentSlot { get; private set; }
 
-        public bool HasMultiplayerRunSave => SaveStore.FileExists(CurrentMultiplayerRunSavePath);
+        public string CurrentMultiplayerRunSavePath => SavePath(CurrentSlot ?? StartNewSlot());
+
+        public string CurrentMultiplayerRunPlayerNamesPath => NamesPath(CurrentSlot ?? StartNewSlot());
+
+        public bool HasMultiplayerRunSave => ListSlots().Count > 0;
 
         private LanRunSaveManagerService()
         {
         }
 
-        public ReadSaveResult<SerializableRun> LoadAndCanonicalizeMultiplayerRunSave(ulong localPlayerId)
+        public record SaveInfo(string Slot, SerializableRun? Run, ReadSaveStatus Status);
+
+        // A new run gets a new slot when it's hosted; its first save creates the file.
+        public string StartNewSlot()
         {
-            var readSaveResult = LoadMultiplayerRunSave();
+            CurrentSlot = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff");
+            return CurrentSlot;
+        }
+
+        public void UseSlot(string slot)
+        {
+            CurrentSlot = slot;
+        }
+
+        public bool SlotExists(string slot)
+        {
+            return SaveStore.FileExists(SavePath(slot));
+        }
+
+        public void PrepareToWrite()
+        {
+            SaveStore.CreateDirectory(SavesDir);
+        }
+
+        private string SavePath(string slot)
+        {
+            return SavesDir + "/" + slot + SaveExtension;
+        }
+
+        private string NamesPath(string slot)
+        {
+            return SavesDir + "/" + slot + NamesExtension;
+        }
+
+        public List<string> ListSlots()
+        {
+            MigrateLegacySave();
+            if (!SaveStore.DirectoryExists(SavesDir))
+                return [];
+
+            return SaveStore.GetFilesInDirectory(SavesDir)
+                .Select(Path.GetFileName)
+                .OfType<string>()
+                .Where(name => name.EndsWith(SaveExtension))
+                .Select(name => name[..^SaveExtension.Length])
+                .ToList();
+        }
+
+        // Every LAN save with what's needed to show it, newest first. A save that can't be read is listed with its
+        // status so it can still be deleted.
+        public List<SaveInfo> ListSaves()
+        {
+            return ListSlots()
+                .Select(slot =>
+                {
+                    var result = MigrationManager.LoadSave<SerializableRun>(SavePath(slot));
+                    return new SaveInfo(slot, result.Success ? result.SaveData : null, result.Status);
+                })
+                .OrderByDescending(save => save.Run?.SaveTime ?? 0)
+                .ThenByDescending(save => save.Slot)
+                .ToList();
+        }
+
+        public ReadSaveResult<SerializableRun> LoadAndCanonicalizeMultiplayerRunSave(string slot, ulong localPlayerId)
+        {
+            var readSaveResult = LoadMultiplayerRunSave(slot);
             if (readSaveResult is { Success: true, SaveData: not null })
             {
                 try
@@ -48,7 +127,8 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                     var lanPlayerNameService = LanPlayerNameService.Instance;
 
                     var data = RunManager.CanonicalizeSave(readSaveResult.SaveData, localPlayerId);
-                    var playerNamesJson = SaveStore.ReadFile(CurrentMultiplayerRunPlayerNamesPath);
+
+                    var playerNamesJson = SaveStore.ReadFile(NamesPath(slot));
                     if (!string.IsNullOrEmpty(playerNamesJson))
                     {
                         lanPlayerNameService.PlayerNames = JsonSerializer.Deserialize<PlayerNames>(playerNamesJson) ??
@@ -56,12 +136,12 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
                     }
 
                     lanPlayerNameService.SetHostPlayerName();
+
                     return new ReadSaveResult<SerializableRun>(data, ReadSaveStatus.Success);
                 }
                 catch (Exception value)
                 {
-                    Log.Error($"Multiplayer run save validation failed: {value}");
-                    RenameBrokenMultiplayerRunSave(ReadSaveStatus.ValidationFailed);
+                    Log.Error($"LAN run save {slot} failed validation: {value}");
                     return new ReadSaveResult<SerializableRun>(ReadSaveStatus.ValidationFailed,
                         $"Save file validation failed: {value}");
                 }
@@ -70,9 +150,10 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
             return readSaveResult;
         }
 
-        public ReadSaveResult<SerializableRun> LoadMultiplayerRunSave()
+        public ReadSaveResult<SerializableRun> LoadMultiplayerRunSave(string slot)
         {
-            var readSaveResult = MigrationManager.LoadSave<SerializableRun>(CurrentMultiplayerRunSavePath);
+            var path = SavePath(slot);
+            var readSaveResult = MigrationManager.LoadSave<SerializableRun>(path);
             if (readSaveResult.Success)
             {
                 return readSaveResult;
@@ -80,17 +161,17 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
 
             if (readSaveResult.Status == ReadSaveStatus.FileNotFound)
             {
-                Log.Info("Multiplayer run save file not found at " + CurrentMultiplayerRunSavePath);
+                Log.Info("LAN run save file not found at " + path);
             }
             else if (!readSaveResult.Status.IsRecoverable())
             {
                 Log.Error(
-                    $"Failed to load multiplayer run save: status={readSaveResult.Status} msg={readSaveResult.ErrorMessage}");
+                    $"Failed to load LAN run save {slot}: status={readSaveResult.Status} msg={readSaveResult.ErrorMessage}");
             }
             else
             {
                 Log.Warn(
-                    $"Multiplayer run save had recoverable issues: status={readSaveResult.Status} msg={readSaveResult.ErrorMessage}");
+                    $"LAN run save {slot} had recoverable issues: status={readSaveResult.Status} msg={readSaveResult.ErrorMessage}");
             }
 
             return readSaveResult;
@@ -98,26 +179,51 @@ namespace SlayTheSpire2.LAN.Multiplayer.Services
 
         public void DeleteCurrentMultiplayerRun()
         {
-            SaveStore.DeleteFile(CurrentMultiplayerRunSavePath);
-            SaveStore.DeleteFile(CurrentMultiplayerRunSavePath + ".backup");
-            SaveStore.DeleteFile(CurrentMultiplayerRunPlayerNamesPath);
+            if (CurrentSlot != null)
+            {
+                DeleteSlot(CurrentSlot);
+            }
         }
 
-        public void RenameBrokenMultiplayerRunSave(ReadSaveStatus status)
+        public void DeleteSlot(string slot)
         {
+            // The save store keeps a .backup beside each file it writes.
+            SaveStore.DeleteFile(SavePath(slot));
+            SaveStore.DeleteFile(SavePath(slot) + ".backup");
+            SaveStore.DeleteFile(NamesPath(slot));
+            SaveStore.DeleteFile(NamesPath(slot) + ".backup");
+            Log.Info($"Deleted LAN run save {slot}");
+        }
+
+        // Moves the one save older versions kept into a slot of its own, once.
+        private void MigrateLegacySave()
+        {
+            var profileId = ProfileIdProvider.CurrentProfileId;
+            var legacySave = RunSaveManager.GetRunSavePath(profileId, LegacySaveFile);
+            if (!SaveStore.FileExists(legacySave))
+                return;
+
             try
             {
-                if (HasMultiplayerRunSave)
+                var slot = SaveStore.GetLastModifiedTime(legacySave).UtcDateTime.ToString("yyyyMMdd-HHmmss-fff");
+                SaveStore.CreateDirectory(SavesDir);
+
+                SaveStore.WriteFile(SavePath(slot), SaveStore.ReadFile(legacySave) ?? string.Empty);
+                var legacyNames = RunSaveManager.GetRunSavePath(profileId, LegacyNamesFile);
+                if (SaveStore.FileExists(legacyNames))
                 {
-                    var text = CorruptFileHandler.GenerateCorruptFilePath(CurrentMultiplayerRunSavePath, status);
-                    SaveStore.RenameFile(CurrentMultiplayerRunSavePath, text);
-                    Log.Error(
-                        $"Corrupt multiplayer run save detected: Renamed '{CurrentMultiplayerRunSavePath}' to '{text}'");
+                    SaveStore.WriteFile(NamesPath(slot), SaveStore.ReadFile(legacyNames) ?? string.Empty);
+                    SaveStore.DeleteFile(legacyNames);
+                    SaveStore.DeleteFile(legacyNames + ".backup");
                 }
+
+                SaveStore.DeleteFile(legacySave);
+                SaveStore.DeleteFile(legacySave + ".backup");
+                Log.Info($"Moved the LAN run save into slot {slot}");
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Log.Warn("Failed to rename broken multiplayer run save: " + ex.Message);
+                Log.Error($"Couldn't move the old LAN run save into a slot: {e}");
             }
         }
     }

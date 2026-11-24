@@ -17,8 +17,9 @@
 [list]
 [*][b]LAN lobby list[/b]: games on your network show up in the Join screen, tagged LAN. You can also join by IP.
 [*][b]Host settings[/b]: choose the port, player limit and your player name.
-[*][b]Reconnects on its own[/b]: if a connection drops mid-run, say when a Steam Deck sleeps, the run picks up where it left off.
-[*][b]Restart Encounter[/b]: the host can restart the current fight, event, shop or rest site from the pause menu.
+[*][b]Reconnects on its own[/b]: if a connection drops mid-run, say when a Steam Deck sleeps, the run picks up where it left off. Works in LAN games and in Steam invite games.
+[*][b]Several LAN saves[/b]: each LAN run keeps its own save; pick one to continue or delete it.
+[*][b]Restart Encounter[/b]: the host can restart the current fight, event, shop or rest site from the pause menu, in LAN and Steam invite games.
 [*][b]Everything unlocked[/b]: all characters, cards, relics, potions and acts, every timeline epoch revealed (modded profile only), and any ascension in multiplayer.
 [*][b]Hide map drawings[/b] from any player.
 [/list]

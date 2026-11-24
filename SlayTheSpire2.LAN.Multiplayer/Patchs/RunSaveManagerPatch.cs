@@ -31,7 +31,10 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
         private static async Task SaveRun(SerializableRun value, bool forceSynchronous, ISaveStore saveStore,
             Action? saved)
         {
-            var savePath = LanRunSaveManagerService.Instance.CurrentMultiplayerRunSavePath;
+            var lanRunSaveManagerService = LanRunSaveManagerService.Instance;
+            var savePath = lanRunSaveManagerService.CurrentMultiplayerRunSavePath;
+            var playerNamesPath = lanRunSaveManagerService.CurrentMultiplayerRunPlayerNamesPath;
+            lanRunSaveManagerService.PrepareToWrite();
             using var stream = new MemoryStream();
             if (!forceSynchronous)
             {
@@ -62,7 +65,7 @@ namespace SlayTheSpire2.LAN.Multiplayer.Patchs
             }
 
             playerNamesStream.Seek(0L, SeekOrigin.Begin);
-            await saveStore.WriteFileAsync(LanRunSaveManagerService.Instance.CurrentMultiplayerRunPlayerNamesPath,
+            await saveStore.WriteFileAsync(playerNamesPath,
                 playerNamesStream.ToArray());
 
             saved?.Invoke();

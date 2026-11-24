@@ -2,5 +2,11 @@
     "SlayTheSpire2.LAN.Multiplayer.COPIED": "Kopyalandı",
     "SlayTheSpire2.LAN.Multiplayer.IP_ADDRESS_TITLE": "IP Adresi:",
     "SlayTheSpire2.LAN.Multiplayer.LOCAL_IP_ADDRESS_TITLE": "Yerel IP Adresi:",
-    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPv6 Adresi:"
+    "SlayTheSpire2.LAN.Multiplayer.IPV6_ADDRESS_TITLE": "IPv6 Adresi:",
+    "SlayTheSpire2.LAN.Multiplayer.SAVES_TITLE": "LAN Kayıtları",
+    "SlayTheSpire2.LAN.Multiplayer.NO_SAVES": "Kayıtlı LAN oyunu yok.",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE": "Sil",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.header": "Bu oyun silinsin mi?",
+    "SlayTheSpire2.LAN.Multiplayer.DELETE_SAVE_CONFIRM.body": "Oyun geçmişine terk edilmiş olarak kaydedilir ve devam ettirilemez.",
+    "SlayTheSpire2.LAN.Multiplayer.LAN_LOAD_DESCRIPTION": "Devam etmek için kayıtlı bir LAN oyunu seç ya da birini sil. Yalnızca o oyunda bulunan oyuncular katılabilir."
 }
